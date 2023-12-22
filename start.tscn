@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://btm0faxb6pdai"]
-
-[ext_resource type="Texture2D" uid="uid://bixxko34ior55" path="res://assets/StartScreen.png" id="1_ciofp"]
-
-[node name="Node2D" type="Node2D"]
-
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(480, 271)
-texture = ExtResource("1_ciofp")
