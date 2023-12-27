@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="theme-color" content="black" />
+	<link rel="manifest" href="manifest.json" />
+	<link rel="icon" href="elf192.png" sizes="192x192" />
+    <link rel="icon" href="elf256.png" sizes="256x256" />
+    <link rel="icon" href="elf512.png" sizes="512x512" />
+	<title>EPE</title>
+</head>
+
+<body style="background-color: black; margin: 0">
+	<style media='screen' type='text/css'>
+		@font-face {
+		  font-family: retroGaming;
+		  src: url('assets/Retro%20Gaming.ttf');
+		  font-weight:400;
+		  font-weight:normal;
+		  font-smooth:never;
+		  -webkit-font-smoothing:none;
+		}
+  	</style>
+	<div style="font-family:retroGaming; position:absolute; left:-1000px; visibility:hidden;">.</div>
+	<div id="app"></div>
+	<script>
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function() {
+				navigator.serviceWorker.register('/sw.ts', {scope: '/'}).then(function(registration) {
+					console.log('ServiceWorker registration successful with scope: ', registration.scope);
+				}, function(err) {
+					console.log('ServiceWorker registration failed: ', err);
+				});
+			});
+		}
+	</script>
+	<script type="module" src="src/main.ts"></script>
+</body>
+
+</html>
