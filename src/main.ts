@@ -1,8 +1,9 @@
 import Phaser from 'phaser'
 
 import StartScene from './StartScene'
+import LevelSelectScene from './LevelSelectScene';
 
-const config = {
+const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,
 	parent: 'app',
 	width: 960,
@@ -14,7 +15,8 @@ const config = {
 			gravity: { y: 200 },
 		},
 	},
-	scene: [StartScene],
+	scene: [StartScene, LevelSelectScene],
+	pixelArt: true,
 	scale: {
 		parent: 'app',
 		mode: Phaser.Scale.FIT,

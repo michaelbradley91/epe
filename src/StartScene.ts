@@ -1,17 +1,23 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, HIGHLIGHTED_TEXT, START_MENU_FONT_SIZE, TEXT } from './constants';
 
+const PRESENT_START_X = 288;
+const PRESENT_END_X = 666;
+
 export default class StartScene extends Phaser.Scene {
 	start_text: Phaser.GameObjects.Text | undefined;
 	options_text: Phaser.GameObjects.Text | undefined;
 	quit_text: Phaser.GameObjects.Text | undefined;
+	present: Phaser.GameObjects.Sprite | undefined;
 
 	constructor() {
-		super('hello-world')
+		super('start')
 	}
 
 	preload() {
-		this.load.image('start', 'assets/StartScreen.png');
+		this.load.image("start", "assets/StartScreen.png");
+		this.load.spritesheet("animated_long_belt", "assets/Long_Belt_Animated.png", { frameWidth: 192, frameHeight: 32 });
+		this.load.image("present", "assets/Present.png");
 	}
 
 	// Highlight the menu option the user is about to click
@@ -117,11 +123,29 @@ export default class StartScene extends Phaser.Scene {
 		this.quit_text.on('pointerdown', () => {
 			this.highlight_menu_option(this.quit_text);
 		}, this);
+
+		this.anims.create({
+			key: "menu_belt",
+			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 7}),
+			frameRate: 30,
+			repeat: -1,
+		})
+
+		this.add.sprite(288, 464, "animated_long_belt").setOrigin(0, 0).setScale(2).play("menu_belt");
+		this.present = this.add.sprite(PRESENT_START_X, 490, "present").setScale(2);
+	}
+
+	update(time: number, delta: number): void {
+		this.present?.setX(this.present?.x + (delta / 30) * 4.125);
+		if (this.present && this.present?.x > PRESENT_END_X)
+		{
+			this.present?.setX(PRESENT_START_X);
+		}
 	}
 
 	start_game()
 	{
-		console.log("start!");
+		this.scene.start("level-select");
 	}
 
 	open_options()
