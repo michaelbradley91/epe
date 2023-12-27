@@ -17,23 +17,23 @@ export default class StartScene extends Phaser.Scene {
 	// Highlight the menu option the user is about to click
 	highlight_menu_option(text: Phaser.GameObjects.Text | undefined)
 	{
-		if (text != this.start_text)
+		if (text !== this.start_text)
 		{
 			this.start_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
 				color: TEXT});
 		}
-		if (text != this.options_text)
+		if (text !== this.options_text)
 		{
-			this.start_text?.setStyle({
+			this.options_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
 				color: TEXT});
 		}
-		if (text != this.quit_text)
+		if (text !== this.quit_text)
 		{
-			this.start_text?.setStyle({
+			this.quit_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
 				color: TEXT});
@@ -44,36 +44,43 @@ export default class StartScene extends Phaser.Scene {
 			color: HIGHLIGHTED_TEXT});
 	}
 
+	is_highlighted(text: Phaser.GameObjects.Text | undefined): boolean
+	{
+		if (text === this.start_text)
+		{
+			return this.start_text?.style.color == HIGHLIGHTED_TEXT;
+		}
+		if (text === this.options_text)
+		{
+			return this.options_text?.style.color == HIGHLIGHTED_TEXT;
+		}
+		if (text === this.quit_text)
+		{
+			return this.quit_text?.style.color == HIGHLIGHTED_TEXT;
+		}
+		return false;
+	}
+
 	create() {
-		const startImage = this.add.image(0, 0, 'start').setOrigin(0, 0).setInteractive()
-		startImage.on('pointerup',  () =>
-        {
-			const pointer_position = this.input.activePointer.position;
-			
-			// Where does this fall?
-            if (!this.scale.isFullscreen)
-			{
-                this.scale.startFullscreen();
-            }
-        }, this);
+		const startImage = this.add.image(0, 0, 'start').setOrigin(0, 0)
 
 		this.start_text = this.add.text(197, 184, 'Start', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
 			color: HIGHLIGHTED_TEXT
-		});
+		}).setInteractive();
 
 		this.options_text = this.add.text(198, 242, 'Options', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
 			color: TEXT
-		});
+		}).setInteractive();
 
 		this.quit_text = this.add.text(198, 306, 'Quit', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
 			color: TEXT
-		});
+		}).setInteractive();
 
 		// Centre the text
 		this.start_text.setX((startImage.width - this.start_text.getBounds().width) / 2);
@@ -82,28 +89,51 @@ export default class StartScene extends Phaser.Scene {
 		
 		// Set up the menu events
 		this.start_text.on('pointerup', () => {
-			console.log("Start!");
+			if (this.is_highlighted(this.start_text))
+			{
+				this.start_game();
+			}
 		}, this);
 		this.start_text.on('pointerdown', () => {
 			this.highlight_menu_option(this.start_text);
 		}, this);
 
 		this.options_text.on('pointerup', () => {
-			console.log("Options!");
+			if (this.is_highlighted(this.options_text))
+			{
+				this.open_options();
+			}
 		}, this);
-		this.start_text.on('pointerdown', () => {
+		this.options_text.on('pointerdown', () => {
 			this.highlight_menu_option(this.options_text);
 		}, this);
 
 		this.quit_text.on('pointerup', () => {
-			console.log("Quit!");
+			if (this.is_highlighted(this.quit_text))
+			{
+				this.quit_game();
+			}
 		}, this);
 		this.quit_text.on('pointerdown', () => {
 			this.highlight_menu_option(this.quit_text);
 		}, this);
 	}
 
-	update(time: number, delta: number): void {
-		
+	start_game()
+	{
+		console.log("start!");
+	}
+
+	open_options()
+	{
+		console.log("options!");
+	}
+
+	quit_game()
+	{
+		// Quit the entire game!
+		console.log("Closing!");
+		this.game.destroy(true, false);
+		window.close();
 	}
 }

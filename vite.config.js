@@ -8,7 +8,7 @@ export default defineConfig({
 		https: {
 			key: "crt/epe.pineneedletea.com.key",
 			cert: "crt/epe.pineneedletea.com.crt"
-		}
+		},
 	},
 	clearScreen: false,
-})
+});
