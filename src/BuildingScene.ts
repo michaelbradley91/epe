@@ -61,14 +61,14 @@ export default class BuildingScene extends Phaser.Scene {
         this.exit_button = this.add.image(function_button_left + function_button_separator * 0, button_y, "exit_door_belt").setOrigin(0, 0).setInteractive().setScale(2);
         this.rotate_button = this.add.image(function_button_left + function_button_separator * 1, button_y, "rotate_belt").setOrigin(0, 0).setInteractive().setScale(2);
         this.reflect_button = this.add.image(function_button_left + function_button_separator * 2, button_y, "reflect_belt").setOrigin(0, 0).setInteractive().setScale(2);
-        this.belt_button = this.add.image(select_button_left + select_button_separator * 0, button_y, "belt").setOrigin(0, 0).setInteractive().setScale(2);
-        this.printer_red_button = this.add.image(select_button_left + select_button_separator * 1, button_y, "printer_red").setOrigin(0, 0).setInteractive().setScale(2);
-        this.printer_orange_button = this.add.image(select_button_left + select_button_separator * 2, button_y, "printer_orange").setOrigin(0, 0).setInteractive().setScale(2);
-        this.printer_green_button = this.add.image(select_button_left + select_button_separator * 3, button_y, "printer_green").setOrigin(0, 0).setInteractive().setScale(2);
-        this.printer_blue_button = this.add.image(select_button_left + select_button_separator * 4, button_y, "printer_blue").setOrigin(0, 0).setInteractive().setScale(2);
-        this.switch_blue_orange_button = this.add.image(select_button_left + select_button_separator * 5, button_y, "splitter_orange_blue").setOrigin(0, 0).setInteractive().setScale(2);
-        this.switch_red_green_button = this.add.image(select_button_left + select_button_separator * 6, button_y, "splitter_red_green").setOrigin(0, 0).setInteractive().setScale(2);
-        this.eraser_button = this.add.image(select_button_left + select_button_separator * 7, button_y, "eraser_belt").setOrigin(0, 0).setInteractive().setScale(2);
+        this.belt_button = this.add.image(select_button_left + 32 + select_button_separator * 0, button_y + 32, "belt").setInteractive().setScale(2);
+        this.printer_red_button = this.add.image(select_button_left + 32 + select_button_separator * 1, button_y + 32, "printer_red").setInteractive().setScale(2);
+        this.printer_orange_button = this.add.image(select_button_left + 32 + select_button_separator * 2, button_y + 32, "printer_orange").setInteractive().setScale(2);
+        this.printer_green_button = this.add.image(select_button_left + 32 + select_button_separator * 3, button_y + 32, "printer_green").setInteractive().setScale(2);
+        this.printer_blue_button = this.add.image(select_button_left + 32 + select_button_separator * 4, button_y + 32, "printer_blue").setInteractive().setScale(2);
+        this.switch_blue_orange_button = this.add.image(select_button_left + 32 + select_button_separator * 5, button_y + 32, "splitter_orange_blue").setInteractive().setScale(2);
+        this.switch_red_green_button = this.add.image(select_button_left + 32 + select_button_separator * 6, button_y + 32, "splitter_red_green").setInteractive().setScale(2);
+        this.eraser_button = this.add.image(select_button_left + 32 + select_button_separator * 7, button_y + 32, "eraser_belt").setInteractive().setScale(2);
         this.play_button = this.add.image(888, button_y, "play").setOrigin(0, 0).setInteractive().setScale(2);
         this.highlight_button = this.add.image(-1000, -1000, "highlight_belt").setScale(1.8);
 
@@ -130,6 +130,7 @@ export default class BuildingScene extends Phaser.Scene {
         this.rotate_button.on("pointerup", () => {
             if (this.rotate_selected)
             {
+                this.rotate_button_pressed();
                 this.rotate_selected = false;
             }
         }, this);
@@ -182,8 +183,8 @@ export default class BuildingScene extends Phaser.Scene {
 
     highlight_build_button(button: Phaser.GameObjects.Image)
     {
-        this.highlight_button.setX(button.x + button.width);
-        this.highlight_button.setY(button.y + button.height);
+        this.highlight_button.setX(button.x);
+        this.highlight_button.setY(button.y);
     }
 
     update(time: number, delta: number): void {}
