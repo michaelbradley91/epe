@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { FONT_FAMILY, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR } from './constants';
 
 export default class BuildingScene extends Phaser.Scene {
 
@@ -45,9 +46,10 @@ export default class BuildingScene extends Phaser.Scene {
         this.load.image("highlight_belt", "assets/Belt_Highlight.png");
 	}
 
-    init(level: number)
+    init(data: any)
     {
-        this.level = level;
+        this.level = data.level;
+        console.log("Loading level ", this.level);
     }
 
     create()
@@ -148,6 +150,33 @@ export default class BuildingScene extends Phaser.Scene {
 			this.reflect_selected = false;
             this.play_selected = false;
 		});
+
+        // Add text
+        this.add_instructions();
+    }
+
+    add_instructions()
+    {
+        // TODO: switch based on the level number
+        const instructions_x = 40;
+        const instructions_y = 150;
+        const instructions_width = 200;
+        const instruction_title = "The basics";
+        const instruction_text = "Accept all presents starting with two red markers."
+
+        const title_text = this.add.text(instructions_x, instructions_y, instruction_title, {
+			fontFamily: FONT_FAMILY,
+			fontSize: INSTRUCTION_TITLE_FONT_SIZE,
+			color: TEXT_COLOR,
+            wordWrap: { width: instructions_width, useAdvancedWrap: true }
+		});
+
+        this.add.text(instructions_x, instructions_y + title_text.height + 8, instruction_text, {
+			fontFamily: FONT_FAMILY,
+			fontSize: INSTRUCTION_FONT_SIZE,
+			color: TEXT_COLOR,
+            wordWrap: { width: instructions_width, useAdvancedWrap: true }
+		});
     }
 
     reflect_button_pressed()
@@ -178,7 +207,7 @@ export default class BuildingScene extends Phaser.Scene {
 
     play_button_pressed()
     {
-
+        console.log("play!");
     }
 
     highlight_build_button(button: Phaser.GameObjects.Image)

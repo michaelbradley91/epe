@@ -71,7 +71,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 
 	start_level(level: number)
 	{
-		console.log("Starting level ", level);
+		this.scene.start("building", { level: level });
 	}
 
 	update_numbers(new_level_selected: number)

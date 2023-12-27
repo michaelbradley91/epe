@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { FONT_FAMILY, HIGHLIGHTED_TEXT, START_MENU_FONT_SIZE, TEXT } from './constants';
+import { FONT_FAMILY, HIGHLIGHTED_TEXT_COLOR, START_MENU_FONT_SIZE, TEXT_COLOR } from './constants';
 
 const PRESENT_START_X = 288;
 const PRESENT_END_X = 666;
@@ -28,41 +28,41 @@ export default class StartScene extends Phaser.Scene {
 			this.start_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
-				color: TEXT});
+				color: TEXT_COLOR});
 		}
 		if (text !== this.options_text)
 		{
 			this.options_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
-				color: TEXT});
+				color: TEXT_COLOR});
 		}
 		if (text !== this.quit_text)
 		{
 			this.quit_text?.setStyle({
 				fontFamily: FONT_FAMILY,
 				fontSize: START_MENU_FONT_SIZE,
-				color: TEXT});
+				color: TEXT_COLOR});
 		}
 		text?.setStyle({
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
-			color: HIGHLIGHTED_TEXT});
+			color: HIGHLIGHTED_TEXT_COLOR});
 	}
 
 	is_highlighted(text: Phaser.GameObjects.Text | undefined): boolean
 	{
 		if (text === this.start_text)
 		{
-			return this.start_text?.style.color == HIGHLIGHTED_TEXT;
+			return this.start_text?.style.color == HIGHLIGHTED_TEXT_COLOR;
 		}
 		if (text === this.options_text)
 		{
-			return this.options_text?.style.color == HIGHLIGHTED_TEXT;
+			return this.options_text?.style.color == HIGHLIGHTED_TEXT_COLOR;
 		}
 		if (text === this.quit_text)
 		{
-			return this.quit_text?.style.color == HIGHLIGHTED_TEXT;
+			return this.quit_text?.style.color == HIGHLIGHTED_TEXT_COLOR;
 		}
 		return false;
 	}
@@ -73,19 +73,19 @@ export default class StartScene extends Phaser.Scene {
 		this.start_text = this.add.text(197, 184, 'Start', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
-			color: HIGHLIGHTED_TEXT
+			color: HIGHLIGHTED_TEXT_COLOR
 		}).setInteractive();
 
 		this.options_text = this.add.text(198, 242, 'Options', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
-			color: TEXT
+			color: TEXT_COLOR
 		}).setInteractive();
 
 		this.quit_text = this.add.text(198, 306, 'Quit', {
 			fontFamily: FONT_FAMILY,
 			fontSize: START_MENU_FONT_SIZE,
-			color: TEXT
+			color: TEXT_COLOR
 		}).setInteractive();
 
 		// Centre the text
