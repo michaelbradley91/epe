@@ -12,6 +12,19 @@ export const TEXT_COLOR = WHITE;
 export const HIGHLIGHTED_TEXT_COLOR = YELLOW;
 
 /* 
+ * Sizes
+ */
+export const TILE_SIZE = 32;
+
+/*
+ * Positions
+ */
+export const GRID_X = 286;
+export const GRID_Y = 32;
+export const GRID_WIDTH = 640;
+export const GRID_HEIGHT = 384;
+
+/* 
  * Fonts
  */
 export const FONT_FAMILY = "retroGaming";

@@ -1,10 +1,9 @@
 import Phaser from 'phaser'
-import { FONT_FAMILY, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR } from './constants';
+import { FONT_FAMILY, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR, TILE_SIZE } from './constants';
 
 export default class BuildingScene extends Phaser.Scene {
 
-    level: number = -1;
-    button_rotate: number = 0;
+    // UI elements
     printer_red_button!: Phaser.GameObjects.Image;
     printer_orange_button!: Phaser.GameObjects.Image;
     printer_green_button!: Phaser.GameObjects.Image;
@@ -23,7 +22,18 @@ export default class BuildingScene extends Phaser.Scene {
     rotate_button!: Phaser.GameObjects.Image;
     reflect_button!: Phaser.GameObjects.Image;
     play_button!: Phaser.GameObjects.Image;
-    
+
+    // Misc state
+    level: number = -1;
+
+    // Stores the grid details
+    grid_size: number = 64;
+    level_number_sprites: { [id: number]: Phaser.GameObjects.Sprite } = {};
+    // The grid index is a number of x + y * <number of tiles in grid>
+    grid: { [id: number]: Phaser.GameObjects.Image } = {};
+    grid_elf: Phaser.GameObjects.Image | undefined;
+    grid_sleigh: Phaser.GameObjects.Image | undefined;
+
     constructor()
     {
         super("building");
@@ -44,12 +54,13 @@ export default class BuildingScene extends Phaser.Scene {
         this.load.image("belt", "assets/Belt_01.png");
         this.load.image("play", "assets/Play_01.png");
         this.load.image("highlight_belt", "assets/Belt_Highlight.png");
+        this.load.image("elf", "assets/Elf_02.png");
+        this.load.image("sleigh", "assets/Sleigh.png");
 	}
 
     init(data: any)
     {
         this.level = data.level;
-        console.log("Loading level ", this.level);
     }
 
     create()
@@ -149,29 +160,51 @@ export default class BuildingScene extends Phaser.Scene {
 			this.rotate_selected = false;
 			this.reflect_selected = false;
             this.play_selected = false;
-		});
+		}, this);
+        this.input.on("pointerdown", () => {
+            const position = {x: this.input.activePointer.position.x, y: this.input.activePointer.position.y};
+            if (this.is_inside_grid(position.x, position.y))
+            {
+                const grid_coordinate = this.get_grid_coordinates(position.x, position.y);
+                const highlighted_button = this.get_highlighted_button();
+                if (!highlighted_button) return;
 
-        // Add text
-        this.add_instructions();
+                if (this.eraser_button === highlighted_button)
+                {
+                    this.erase_tile(grid_coordinate.x, grid_coordinate.y);
+                    return;
+                }
+
+                // Work out what to set
+                let flipped = false;
+                if (highlighted_button === this.switch_blue_orange_button || this.switch_red_green_button === highlighted_button)
+                {
+                    flipped = this.switch_blue_orange_button.flipX || this.switch_red_green_button.flipY;
+                }
+                const angle = this.belt_button.angle;
+                this.set_tile(grid_coordinate.x, grid_coordinate.y, highlighted_button.texture.key, angle, flipped);
+            }
+        }, this);
+
+        // Setup the level details
+        this.setup_level();
     }
 
-    add_instructions()
+    add_instructions(title: string, text: string)
     {
         // TODO: switch based on the level number
         const instructions_x = 40;
         const instructions_y = 150;
         const instructions_width = 200;
-        const instruction_title = "The basics";
-        const instruction_text = "Accept all presents starting with two red markers."
 
-        const title_text = this.add.text(instructions_x, instructions_y, instruction_title, {
+        const title_text = this.add.text(instructions_x, instructions_y, title, {
 			fontFamily: FONT_FAMILY,
 			fontSize: INSTRUCTION_TITLE_FONT_SIZE,
 			color: TEXT_COLOR,
             wordWrap: { width: instructions_width, useAdvancedWrap: true }
 		});
 
-        this.add.text(instructions_x, instructions_y + title_text.height + 8, instruction_text, {
+        this.add.text(instructions_x, instructions_y + title_text.height + 8, text, {
 			fontFamily: FONT_FAMILY,
 			fontSize: INSTRUCTION_FONT_SIZE,
 			color: TEXT_COLOR,
@@ -179,10 +212,114 @@ export default class BuildingScene extends Phaser.Scene {
 		});
     }
 
+    /* 
+     * Return true if and only if the given coordinates fall inside the grid
+     */
+    is_inside_grid(x: number, y: number): boolean
+    {
+        return x >= GRID_X && x < GRID_X + GRID_WIDTH && y >= GRID_Y && y < GRID_Y + GRID_HEIGHT;
+    }
+
+    /*
+     * Get the grid tile corresponding to the coordinates, assuming they are inside the grid.
+     * Uses grid size to determine the size of each grid tile
+     */
+    get_grid_coordinates(x: number, y: number): {x: number, y: number}
+    {
+        const grid_tile_x = Math.floor((x - GRID_X) / this.grid_size);
+        const grid_tile_y = Math.floor((y - GRID_Y) / this.grid_size);
+        return {x: grid_tile_x, y: grid_tile_y};
+    }
+
+    /*
+     * Convert grid coordinates back to real coordinates
+     */
+    get_real_coordinates(grid_x: number, grid_y: number): {x: number, y: number}
+    {
+        const x = (grid_x * this.grid_size) + GRID_X;
+        const y = (grid_y * this.grid_size) + GRID_Y;
+        return {x: x, y: y};
+    }
+
+    get_grid_number_of_tiles_wide(): number
+    {
+        return Math.floor(GRID_WIDTH / this.grid_size);
+    }
+
+    get_grid_number_of_tiles_tall(): number
+    {
+        return Math.floor(GRID_HEIGHT / this.grid_size);
+    }
+
+    get_grid_index(grid_x: number, grid_y: number): number
+    {
+        return grid_x + (grid_y * this.get_grid_number_of_tiles_wide());
+    }
+    
+    /*
+     * Place a tile on the grid
+     */
+    set_tile(grid_x: number, grid_y: number, image: string, angle: number, flipped: boolean): Phaser.GameObjects.Image | undefined
+    {
+        // You cannot change the elf or Santa's sleigh
+        const grid_index = this.get_grid_index(grid_x, grid_y);
+        const grid_entry = this.grid[grid_index];
+
+        if (grid_entry && grid_entry === this.grid_elf) return;
+        if (grid_entry && grid_entry === this.grid_sleigh) return;
+
+        this.erase_tile(grid_x, grid_y);
+
+        // Now place the new image
+        const position = this.get_real_coordinates(grid_x, grid_y);
+        const scaling = Math.floor(this.grid_size / TILE_SIZE);
+        const new_image = this.add.image(position.x + (TILE_SIZE / 2) * scaling, position.y + (TILE_SIZE / 2) * scaling, image).setScale(scaling);
+        new_image.setAngle(angle);
+
+        if (angle % 90 !== 0 && flipped)
+        {
+            new_image.toggleFlipY();
+        }
+        else if(flipped)
+        {
+            new_image.toggleFlipX();
+        }
+
+        this.grid[this.get_grid_index(grid_x, grid_y)] = new_image;
+        return new_image;
+    }
+
+    /*
+     * Remove a tile from the grid
+     */
+    erase_tile(grid_x: number, grid_y: number)
+    {
+        // You cannot remove the elf or Santa's sleigh
+        const grid_index = this.get_grid_index(grid_x, grid_y);
+        const grid_entry = this.grid[grid_index];
+
+        if (!grid_entry) return;
+        if (grid_entry && grid_entry === this.grid_elf) return;
+        if (grid_entry &&grid_entry === this.grid_sleigh) return;
+
+        grid_entry.destroy();
+        delete this.grid[grid_index];
+    }
+
+    setup_level()
+    {
+        // TODO load these details from level select
+        this.grid_size = 64;
+        this.grid_elf = this.set_tile(0, 2, "elf", 0, false);
+        this.grid_sleigh = this.set_tile(9, 2, "sleigh", 0, false);
+
+        this.add_instructions("The basics", "Accept all presents starting with two red markers.");
+    }
+
     reflect_button_pressed()
     {
         // Reflect all of the buttons...
-        if (this.button_rotate % 90 !== 0)
+        if (this.belt_button.angle % 90 !== 0)
         {
             this.switch_blue_orange_button.toggleFlipY();
             this.switch_red_green_button.toggleFlipY();
@@ -208,6 +345,47 @@ export default class BuildingScene extends Phaser.Scene {
     play_button_pressed()
     {
         console.log("play!");
+    }
+
+    is_highlighted(button: Phaser.GameObjects.Image)
+    {
+        return button.x === this.highlight_button.x && button.y === this.highlight_button.y;
+    }
+
+    get_highlighted_button(): Phaser.GameObjects.Image | undefined
+    {
+        if (this.is_highlighted(this.switch_blue_orange_button))
+        {
+            return this.switch_blue_orange_button;
+        }
+        if (this.is_highlighted(this.switch_red_green_button))
+        {
+            return this.switch_red_green_button;
+        }
+        if (this.is_highlighted(this.printer_blue_button))
+        {
+            return this.printer_blue_button;
+        }
+        if (this.is_highlighted(this.printer_green_button))
+        {
+            return this.printer_green_button;
+        }
+        if (this.is_highlighted(this.printer_orange_button))
+        {
+            return this.printer_orange_button;
+        }
+        if (this.is_highlighted(this.printer_red_button))
+        {
+            return this.printer_red_button;
+        }
+        if (this.is_highlighted(this.belt_button))
+        {
+            return this.belt_button;
+        }
+        if (this.is_highlighted(this.eraser_button))
+        {
+            return this.eraser_button;
+        }
     }
 
     highlight_build_button(button: Phaser.GameObjects.Image)
