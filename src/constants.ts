@@ -19,7 +19,7 @@ export const TILE_SIZE = 32;
 /*
  * Positions
  */
-export const GRID_X = 286;
+export const GRID_X = 288;
 export const GRID_Y = 32;
 export const GRID_WIDTH = 640;
 export const GRID_HEIGHT = 384;

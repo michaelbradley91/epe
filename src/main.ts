@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import StartScene from './StartScene'
 import LevelSelectScene from './LevelSelectScene';
 import BuildingScene from './BuildingScene';
+import PlayScene from './PlayScene';
 
 const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,
@@ -13,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
 	physics: {
 		default: 'arcade'
 	},
-	scene: [BuildingScene, StartScene, LevelSelectScene],
+	scene: [PlayScene, BuildingScene, StartScene, LevelSelectScene],
 	pixelArt: true,
 	scale: {
 		parent: 'app',

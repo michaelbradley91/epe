@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR, TILE_SIZE } from './constants';
+import { Grid, GridEntry, Piece } from './types';
 
 export default class BuildingScene extends Phaser.Scene {
 
@@ -58,7 +59,7 @@ export default class BuildingScene extends Phaser.Scene {
         this.load.image("sleigh", "assets/Sleigh.png");
 	}
 
-    init(data: any)
+    init(data: {level: number})
     {
         this.level = data.level;
     }
@@ -290,6 +291,69 @@ export default class BuildingScene extends Phaser.Scene {
     }
 
     /*
+     * Populate what is drawn into a semantic grid
+     */
+    extract_grid(): Grid
+    {
+        const grid: Grid = { width: Math.floor(GRID_WIDTH / this.grid_size), height: Math.floor(GRID_HEIGHT / this.grid_size), entries: []};
+        for(let x = 0; x < grid.width; x += 1)
+        {
+            grid.entries[x] = [];
+            for (let y = 0; y < grid.height; y += 1)
+            {
+                const image = this.grid[this.get_grid_index(x, y)];
+                const entry: GridEntry = {
+                    angle: image?.angle ?? 0,
+                    flipped: (image?.flipX || image?.flipY) ?? false,
+                    piece: Piece.Nothing
+                };
+                if (!image)
+                {
+                    entry.piece = Piece.Nothing;
+                }
+                else if (image.texture.key == this.belt_button.texture.key)
+                {
+                    entry.piece = Piece.Belt;
+                }
+                else if (image.texture.key == this.printer_blue_button.texture.key)
+                {
+                    entry.piece = Piece.BluePrinter;
+                }
+                else if (image.texture.key == this.printer_green_button.texture.key)
+                {
+                    entry.piece = Piece.GreenPrinter;
+                }
+                else if (image.texture.key == this.printer_orange_button.texture.key)
+                {
+                    entry.piece = Piece.OrangePrinter;
+                }
+                else if (image.texture.key == this.printer_red_button.texture.key)
+                {
+                    entry.piece = Piece.RedPrinter;
+                }
+                else if (image.texture.key == this.switch_blue_orange_button.texture.key)
+                {
+                    entry.piece = Piece.BlueOrangeSwitch;
+                }
+                else if (image.texture.key == this.switch_red_green_button.texture.key)
+                {
+                    entry.piece = Piece.RedGreenSwitch;
+                }
+                else if (image.texture.key == this.grid_elf?.texture.key)
+                {
+                    entry.piece = Piece.Elf;
+                }
+                else if (image.texture.key == this.grid_sleigh?.texture.key)
+                {
+                    entry.piece = Piece.Sleigh;
+                }
+                grid.entries[x][y] = entry;
+            }
+        }
+        return grid;
+    }
+
+    /*
      * Remove a tile from the grid
      */
     erase_tile(grid_x: number, grid_y: number)
@@ -344,7 +408,8 @@ export default class BuildingScene extends Phaser.Scene {
 
     play_button_pressed()
     {
-        console.log("play!");
+        const grid = this.extract_grid();
+        this.scene.start("play", { grid: grid });
     }
 
     is_highlighted(button: Phaser.GameObjects.Image)
