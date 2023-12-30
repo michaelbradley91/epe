@@ -1,17 +1,39 @@
 import Phaser from 'phaser'
-import { GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, TILE_SIZE } from './constants';
-import { Grid, GridEntry, Piece } from './types';
+import { GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, TILE_SIZE } from './constants';
+import { Action, Bauble, Grid, GridEntry, Piece, Step, TestResult } from './types';
+import { find_piece, test_condition } from './logic';
 
 export default class PlayScene extends Phaser.Scene {
     grid!: Grid;
+    level!: number;
+    test_result!: TestResult;
+    play_speed!: number;
+    playing!: boolean;
+    active_baubles!: Bauble[];
+    active_step!: number;
+
+    exit_selected!: boolean;
+    replay_selected!: boolean;
+    play_selected!: boolean;
+    pause_selected!: boolean;
+    speed_up_selected!: boolean;
+    slow_down_selected!: boolean;
+    exit_button!: Phaser.GameObjects.Image;
+    replay_button!: Phaser.GameObjects.Image;
+    play_button!: Phaser.GameObjects.Image;
+    pause_button!: Phaser.GameObjects.Image;
+    speed_up_button!: Phaser.GameObjects.Image;
+    slow_down_button!: Phaser.GameObjects.Image;
+    present!: Phaser.GameObjects.Image;
 
     constructor() {
 		super('play')
 	}
 
-    init(data: {grid: Grid})
+    init(data: {grid: Grid, level: number})
     {
         this.grid = data.grid;
+        this.level = data.level;
 
         if (!this.grid)
         {
@@ -31,6 +53,11 @@ export default class PlayScene extends Phaser.Scene {
             this.grid.entries[0][0].piece = Piece.Elf;
             this.grid.entries[0][1].piece = Piece.Sleigh;
         }
+
+        if (!this.level)
+        {
+            this.level = 0;
+        }
     }
 
     preload() {
@@ -46,6 +73,7 @@ export default class PlayScene extends Phaser.Scene {
         this.load.image("present", "assets/Present.png");
         this.load.image("belt", "assets/Belt_01.png");
         this.load.image("play", "assets/Play_01.png");
+        this.load.image("pause", "assets/Pause_02.png");
         this.load.image("elf", "assets/Elf_02.png");
         this.load.image("sleigh", "assets/Sleigh.png");
         this.load.image("fast_forward", "assets/Fast_Forward.png");
@@ -58,12 +86,165 @@ export default class PlayScene extends Phaser.Scene {
         this.load.image("read_elf", "assets/Read_Head.png");
 	}
 
+    reset_pointer_up_flags()
+    {
+        this.exit_selected = false;
+        this.replay_selected = false;
+        this.play_selected = false;
+        this.pause_selected = false;
+        this.speed_up_selected = false;
+        this.slow_down_selected = false;
+    }
+
     create()
     {
         const running_image = this.add.image(0, 0, 'running').setOrigin(0, 0);
         const button_y = running_image.height - 74;
+        this.exit_button = this.add.image(16, button_y, "exit_door_belt").setOrigin(0, 0).setInteractive().setScale(2);
+        this.replay_button = this.add.image(104, button_y, "replay").setOrigin(0, 0).setInteractive().setScale(2);
+        this.play_button = this.add.image(192, button_y, "play").setOrigin(0, 0).setInteractive().setScale(2);
+        this.pause_button = this.add.image(192, button_y, "pause").setOrigin(0, 0).setInteractive().setScale(2);
 
+        // Hide play to toggle with pause
+        this.play_button.setVisible(false).setActive(false);
+
+        this.speed_up_button = this.add.image(816, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2);
+        this.slow_down_button = this.add.image(352, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2).setFlipX(true);
         this.draw_grid();
+
+        this.exit_button.on("pointerdown", () => {
+            this.exit_selected = true;
+        }, this);
+        this.replay_button.on("pointerdown", () => {
+            this.replay_selected = true;
+        }, this);
+        this.play_button.on("pointerdown", () => {
+            this.play_selected = true;
+        }, this);
+        this.pause_button.on("pointerdown", () => {
+            this.pause_selected = true;
+        }, this);
+        this.speed_up_button.on("pointerdown", () => {
+            this.speed_up_selected = true;
+        }, this);
+        this.slow_down_button.on("pointerdown", () => {
+            this.slow_down_selected = true;
+        }, this);
+
+        this.exit_button.on("pointerup", () => {
+            if (this.exit_selected)
+            {
+                this.reset_pointer_up_flags();
+                this.scene.start("building");
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+        this.replay_button.on("pointerup", () => {
+            if (this.replay_selected)
+            {
+                this.replay();
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+        this.play_button.on("pointerup", () => {
+            if (this.play_selected)
+            {
+                this.play();
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+        this.pause_button.on("pointerup", () => {
+            if (this.pause_selected)
+            {
+                this.pause();
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+        this.speed_up_button.on("pointerup", () => {
+            if (this.speed_up_selected)
+            {
+                this.speed_up();
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+        this.slow_down_button.on("pointerup", () => {
+            if (this.slow_down_selected)
+            {
+                this.slow_down();
+            }
+            this.reset_pointer_up_flags();
+        }, this);
+
+        // Test the player's creation
+        this.test_result = test_condition(this.grid, false, (_) => true);
+        this.active_baubles = Object.assign([], this.test_result.baubles);
+        this.active_step = 0;
+        this.playing = true;
+
+        // Decide what a sensible play speed is!!
+        this.play_speed = 2;
+
+        // Add the present and watch it fly!
+        const elf_location = find_piece(this.grid, Piece.Elf);
+        if (elf_location)
+        {
+            const tile_size = GRID_WIDTH / this.grid.width;
+            const scaling = tile_size / TILE_SIZE;
+            const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
+            this.present = this.add.image(elf_position.x, elf_position.y, "present").setOrigin(0, 0).setScale(scaling);
+        }
+    }
+
+    /*
+     * Convert grid coordinates back to real coordinates
+     */
+    get_real_coordinates(grid_x: number, grid_y: number): {x: number, y: number}
+    {
+        const grid_size = Math.floor(GRID_WIDTH / this.grid.width);
+        const x = (grid_x * grid_size) + GRID_X;
+        const y = (grid_y * grid_size) + GRID_Y;
+        return {x: x, y: y};
+    }
+
+    speed_up()
+    {
+        this.play_speed += 1;
+        if (this.play_speed > MAX_PLAY_SPEED)
+        {
+            this.play_speed = MAX_PLAY_SPEED;
+        }
+    }
+
+    slow_down()
+    {
+        this.play_speed -= 1;
+        if (this.play_speed < MIN_PLAY_SPEED)
+        {
+            this.play_speed = MIN_PLAY_SPEED;
+        }
+    }
+
+    replay()
+    {
+        this.play_button.setVisible(false).setActive(false);
+        this.pause_button.setVisible(true).setActive(true);
+        this.playing = true;
+        this.active_baubles = Object.assign([], this.test_result.baubles);
+        this.active_step = 0;
+    }
+
+    play()
+    {
+        this.play_button.setVisible(false).setActive(false);
+        this.pause_button.setVisible(true).setActive(true);
+        this.playing = true;
+    }
+
+    pause()
+    {
+        this.pause_button.setVisible(false).setActive(false);
+        this.play_button.setVisible(true).setActive(true);
+        this.playing = false;
     }
 
     /*
@@ -141,5 +322,95 @@ export default class PlayScene extends Phaser.Scene {
         }
     }
 
-    update(time: number, delta: number): void {}
+    update(time: number, delta: number): void {
+        // Nothing to do if we hit the final step...
+        if (this.active_step >= this.test_result.path.length)
+        {
+            return;
+        }
+        const heading = this.test_result.path[this.active_step].next_position;
+        if (!heading)
+        {
+            return;
+        }
+        const next_position = this.get_real_coordinates(heading.x, heading.y);
+        // Calculate how far to travel...
+        const distance = (delta / 1000) * this.play_speed;
+        
+        // What direction are we travelling in?
+        if (next_position.x > this.present.x)
+        {
+            this.present.setX(this.present.x + distance);
+            if (this.present.x > next_position.x)
+            {
+                this.present.setX(next_position.x);
+            }
+        }
+        else if (next_position.x < this.present.x)
+        {
+            this.present.setX(this.present.x - distance);
+            if (this.present.x < next_position.x)
+            {
+                this.present.setX(next_position.x);
+            }
+        }
+        else if (next_position.y > this.present.y)
+        {
+            this.present.setY(this.present.y + distance);
+            if (this.present.y > next_position.y)
+            {
+                this.present.setY(next_position.y);
+            }
+        }
+        else if (next_position.y < this.present.y)
+        {
+            this.present.setY(this.present.y - distance);
+            if (this.present.y < next_position.y)
+            {
+                this.present.setY(next_position.y);
+            }
+        }
+
+        // If we have arrived at the next position - update the step
+        if (this.present.x == next_position.x && this.present.y == next_position.y)
+        {
+            this.active_step += 1;
+            // Update the baubles for the next step...
+            
+        }
+    }
+
+    process_step_baubles(step: Step)
+    {
+        if (step.action == Action.Write_Blue)
+        {
+            this.add_bauble(Bauble.Blue);
+        }
+        else if (step.action == Action.Write_Green)
+        {
+            this.add_bauble(Bauble.Green);
+        }
+        else if (step.action == Action.Write_Orange)
+        {
+            this.add_bauble(Bauble.Orange);
+        }
+        else if (step.action == Action.Write_Red)
+        {
+            this.add_bauble(Bauble.Red);
+        }
+        else if (step.action == Action.Read)
+        {
+            this.remove_bauble();
+        }
+    }
+
+    add_bauble(bauble: Bauble)
+    {
+        // TODO: add the bauble to the tree
+    }
+
+    remove_bauble()
+    {
+        // TODO: remove the bauble from the tree
+    }
 }

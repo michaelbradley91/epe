@@ -64,6 +64,14 @@ export default class BuildingScene extends Phaser.Scene {
         this.level = data.level;
     }
 
+    reset_pointer_up_flags()
+    {
+        this.exit_selected = false;
+        this.rotate_selected = false;
+        this.reflect_selected = false;
+        this.play_selected = false;
+    }
+
     create()
     {
         const function_button_separator = 88;
@@ -131,36 +139,35 @@ export default class BuildingScene extends Phaser.Scene {
         this.exit_button.on("pointerup", () => {
             if (this.exit_selected)
             {
+                this.reset_pointer_up_flags();
                 this.scene.start("level-select");
             }
+            this.reset_pointer_up_flags();
         }, this);
         this.reflect_button.on("pointerup", () => {
             if (this.reflect_selected)
             {
                 this.reflect_button_pressed();
-                this.reflect_selected = false;
             }
         }, this);
         this.rotate_button.on("pointerup", () => {
             if (this.rotate_selected)
             {
                 this.rotate_button_pressed();
-                this.rotate_selected = false;
             }
+            this.reset_pointer_up_flags();
         }, this);
         this.play_button.on("pointerup", () => {
             if (this.play_selected)
             {
-                this.play_selected = false;
+                this.play_button_pressed();
             }
+            this.reset_pointer_up_flags();
         }, this);
         
         // Turn off button selection when it hits somewhere else
         this.input.on("pointerup", () => {
-			this.exit_selected = false;
-			this.rotate_selected = false;
-			this.reflect_selected = false;
-            this.play_selected = false;
+			this.reset_pointer_up_flags();
 		}, this);
         this.input.on("pointerdown", () => {
             const position = {x: this.input.activePointer.position.x, y: this.input.activePointer.position.y};
@@ -303,7 +310,7 @@ export default class BuildingScene extends Phaser.Scene {
             {
                 const image = this.grid[this.get_grid_index(x, y)];
                 const entry: GridEntry = {
-                    angle: image?.angle ?? 0,
+                    angle: (((image?.angle % 360) + 360) % 360) ?? 0,
                     flipped: (image?.flipX || image?.flipY) ?? false,
                     piece: Piece.Nothing
                 };
@@ -409,7 +416,7 @@ export default class BuildingScene extends Phaser.Scene {
     play_button_pressed()
     {
         const grid = this.extract_grid();
-        this.scene.start("play", { grid: grid });
+        this.scene.start("play", { grid: grid, level: this.level });
     }
 
     is_highlighted(button: Phaser.GameObjects.Image)

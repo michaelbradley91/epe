@@ -43,5 +43,10 @@ export const START_MENU_FONT_SIZE = HUGE_FONT_SIZE;
 export const INSTRUCTION_TITLE_FONT_SIZE = LARGE_FONT_SIZE;
 export const INSTRUCTION_FONT_SIZE = MEDIUM_FONT_SIZE;
 
-
+/*
+ * Limits
+ */
+export const MAX_PATH_LENGTH = 1000;
+export const MIN_PLAY_SPEED = 1;
+export const MAX_PLAY_SPEED = 5;
 
