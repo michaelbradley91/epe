@@ -112,13 +112,14 @@ export default class PlayScene extends Phaser.Scene {
         this.pause_button = this.add.image(192, button_y, "pause").setOrigin(0, 0).setInteractive().setScale(2);
         
         // Place the baubles on the Christmas Tree
-        for (let x = 0; x < CHRISTMAS_TREE_WIDTH; x += 1)
+        for (let y = 0; y < CHRISTMAS_TREE_HEIGHT; y += 1)
         {
-            for (let y = 0; y < CHRISTMAS_TREE_HEIGHT; y += 1)
+            for (let x = 0; x < CHRISTMAS_TREE_WIDTH; x += 1)
             {
-                this.christmas_tree_baubles.push(this.add.image(CHRISTMAS_TREE_LEFT + (x * 64), CHRISTMAS_TREE_TOP + (y * 64), "bauble_red").setOrigin(0, 0).setScale(2).setVisible(true));
+                this.christmas_tree_baubles.push(this.add.image(CHRISTMAS_TREE_LEFT + (x * 64), CHRISTMAS_TREE_TOP + (y * 64), "bauble_red").setOrigin(0, 0).setScale(2).setVisible(false));
             }
         }
+        this.christmas_tree_baubles.reverse();
         // Add the read head and the writer
         this.write_elf = this.add.image(CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_TOP - 64, "write_elf").setOrigin(0, 0).setScale(2);
         this.add.image(CHRISTMAS_TREE_LEFT + (64 * (CHRISTMAS_TREE_WIDTH - 1)), CHRISTMAS_TREE_TOP + ((CHRISTMAS_TREE_HEIGHT - 1) * 64), "read_elf").setOrigin(0, 0).setScale(2);
@@ -126,13 +127,14 @@ export default class PlayScene extends Phaser.Scene {
         // Add the tinsel, which is a bit complicated.
         for (let y = 0; y < CHRISTMAS_TREE_HEIGHT; y += 1)
         {
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 32, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2));
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 64, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2));
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 96, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2));
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 128, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2));
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 160, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2));
-            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 192, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 32, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2).setVisible(false));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 64, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2).setVisible(false));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 96, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2).setVisible(false));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 128, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2).setVisible(false));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 160, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 1).setOrigin(0, 0).setScale(2).setVisible(false));
+            this.christmas_tree_tinsel.push(this.add.image(CHRISTMAS_TREE_LEFT + 192, CHRISTMAS_TREE_TOP + (64 * y), "tinsel", 2).setOrigin(0, 0).setScale(2).setVisible(false));
         }
+        this.christmas_tree_tinsel.reverse();
 
         // Hide play to toggle with pause
         this.play_button.setVisible(false).setActive(false);
@@ -209,6 +211,7 @@ export default class PlayScene extends Phaser.Scene {
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
         this.playing = true;
+        this.update_baubles();
 
         // Decide what a sensible play speed is!!
         this.play_speed = 2;
@@ -446,18 +449,9 @@ export default class PlayScene extends Phaser.Scene {
         }
     }
     
-    set_baubles(baubles: Bauble[])
+    update_baubles()
     {
         // Draw all the baubles on the Christmas tree (that can fit)
-        while(this.active_baubles.length)
-        {
-            this.active_baubles.pop();
-        }
-        for (let i = 0; i < baubles.length; i += 1)
-        {
-            this.active_baubles.push(baubles[i]);
-        }
-
         // Clear the screen...
         for (let i = 0; i < this.christmas_tree_baubles.length; i += 1)
         {
@@ -469,21 +463,25 @@ export default class PlayScene extends Phaser.Scene {
         }
         
         // Now make the baubles have the correct colours...
-        for (let i = 0; i < baubles.length; i += 1)
+        for (let i = 0; i < this.active_baubles.length; i += 1)
         {
-            if (baubles[i] == Bauble.Red)
+            if (i >= CHRISTMAS_TREE_SIZE)
+            {
+                break;
+            }
+            if (this.active_baubles[i] == Bauble.Red)
             {
                 this.christmas_tree_baubles[i].setTexture("bauble_red");
             }
-            else if (baubles[i] == Bauble.Blue)
+            else if (this.active_baubles[i] == Bauble.Blue)
             {
                 this.christmas_tree_baubles[i].setTexture("bauble_blue");
             }
-            else if (baubles[i] == Bauble.Green)
+            else if (this.active_baubles[i] == Bauble.Green)
             {
                 this.christmas_tree_baubles[i].setTexture("bauble_green");
             }
-            else if (baubles[i] == Bauble.Orange)
+            else if (this.active_baubles[i] == Bauble.Orange)
             {
                 this.christmas_tree_baubles[i].setTexture("bauble_orange");
             }
@@ -491,40 +489,52 @@ export default class PlayScene extends Phaser.Scene {
         }
 
         // Make the right tinsel visible.
-        for (let i = 0; i < baubles.length; i += 4)
+        for (let i = 0; i < this.active_baubles.length; i += 4)
         {
             if (i >= CHRISTMAS_TREE_SIZE) 
             {
                 break;
             }
+            const tinsel_base_index = (Math.floor(i / 4)) * 3;
+
             // This is fiddly enough we just brute force the calculation...
-            this.christmas_tree_tinsel[i * 2].setVisible(true);
-            this.christmas_tree_tinsel[(i * 2) + 1].setVisible(true);
+            this.christmas_tree_tinsel[tinsel_base_index * 2].setVisible(true);
+            this.christmas_tree_tinsel[(tinsel_base_index * 2) + 1].setVisible(true);
             
-            if (i + 1 < baubles.length)
+            if (i + 1 < this.active_baubles.length)
             {
-                this.christmas_tree_tinsel[(i * 2) + 2].setVisible(true);
-                this.christmas_tree_tinsel[(i * 2) + 3].setVisible(true);
+                this.christmas_tree_tinsel[(tinsel_base_index * 2) + 2].setVisible(true);
+                this.christmas_tree_tinsel[(tinsel_base_index * 2) + 3].setVisible(true);
             }
-            if (i + 2 < baubles.length)
+            if (i + 2 < this.active_baubles.length)
             {
-                this.christmas_tree_tinsel[(i * 2) + 4].setVisible(true);
-                this.christmas_tree_tinsel[(i * 2) + 5].setVisible(true);
+                this.christmas_tree_tinsel[(tinsel_base_index * 2) + 4].setVisible(true);
+                this.christmas_tree_tinsel[(tinsel_base_index * 2) + 5].setVisible(true);
             }
         }
 
         // Finally place the write head
+        let write_index = this.active_baubles.length;
+        console.log("Bauble length " + write_index);
+        if (this.active_baubles.length >= CHRISTMAS_TREE_SIZE - 1)
+        {
+            write_index = CHRISTMAS_TREE_SIZE - 1;
+        }
+        this.write_elf.setX(this.christmas_tree_baubles[write_index].x);
+        this.write_elf.setY(this.christmas_tree_baubles[write_index].y - 64);
     }
 
     add_bauble(bauble: Bauble)
     {
         // TODO: add the bauble to the tree
         this.active_baubles.push(bauble);
+        this.update_baubles();
     }
 
     remove_bauble()
     {
         // TODO: remove the bauble from the tree
         this.active_baubles.shift();
+        this.update_baubles();
     }
 }
