@@ -24,6 +24,12 @@ export const GRID_Y = 32;
 export const GRID_WIDTH = 640;
 export const GRID_HEIGHT = 384;
 
+export const CHRISTMAS_TREE_TOP = 80;
+export const CHRISTMAS_TREE_LEFT = 0;
+export const CHRISTMAS_TREE_WIDTH = 4;
+export const CHRISTMAS_TREE_HEIGHT = 5;
+export const CHRISTMAS_TREE_SIZE = CHRISTMAS_TREE_WIDTH * CHRISTMAS_TREE_HEIGHT;
+
 /* 
  * Fonts
  */
