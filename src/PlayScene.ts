@@ -419,14 +419,29 @@ export default class PlayScene extends Phaser.Scene {
             this.remove_bauble();
         }
     }
+    
+    set_baubles(baubles: Bauble[])
+    {
+        // Draw all the baubles on the Christmas tree (that can fit)
+        while(this.active_baubles.length)
+        {
+            this.active_baubles.pop();
+        }
+        for (let i = 0; i < baubles.length; i += 1)
+        {
+            this.active_baubles.push(baubles[i]);
+        }
+    }
 
     add_bauble(bauble: Bauble)
     {
         // TODO: add the bauble to the tree
+        this.active_baubles.push(bauble);
     }
 
     remove_bauble()
     {
         // TODO: remove the bauble from the tree
+        this.active_baubles.shift();
     }
 }
