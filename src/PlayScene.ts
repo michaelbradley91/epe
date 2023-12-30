@@ -234,6 +234,13 @@ export default class PlayScene extends Phaser.Scene {
         this.playing = true;
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
+        const elf_location = find_piece(this.grid, Piece.Elf);
+        if (elf_location)
+        {
+            const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
+            this.present.setX(elf_position.x);
+            this.present.setY(elf_position.y);
+        }
     }
 
     play()
@@ -326,6 +333,12 @@ export default class PlayScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number): void {
+        // Do nothing if we aren't playing
+        if (!this.playing)
+        {
+            return;
+        }
+
         // Nothing to do if we hit the final step...
         if (this.active_step >= this.test_result.path.length)
         {
@@ -338,7 +351,7 @@ export default class PlayScene extends Phaser.Scene {
         }
         const next_position = this.get_real_coordinates(heading.x, heading.y);
         // Calculate how far to travel...
-        const distance = (delta / 1000) * this.play_speed * 32;
+        const distance = (delta / 1000) * (this.play_speed ** 2) * 32;
         
         // What direction are we travelling in?
         if (next_position.x > this.present.x)
