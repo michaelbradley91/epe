@@ -52,6 +52,9 @@ export default class PlayScene extends Phaser.Scene {
             }
             this.grid.entries[0][0].piece = Piece.Elf;
             this.grid.entries[0][1].piece = Piece.Sleigh;
+            this.grid.entries[1][0].piece = Piece.Belt;
+            this.grid.entries[1][1].piece = Piece.Belt;
+            this.grid.entries[1][1].angle = 90;
         }
 
         if (!this.level)
@@ -335,7 +338,7 @@ export default class PlayScene extends Phaser.Scene {
         }
         const next_position = this.get_real_coordinates(heading.x, heading.y);
         // Calculate how far to travel...
-        const distance = (delta / 1000) * this.play_speed;
+        const distance = (delta / 1000) * this.play_speed * 32;
         
         // What direction are we travelling in?
         if (next_position.x > this.present.x)
