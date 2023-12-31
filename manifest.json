@@ -7,33 +7,33 @@
     "theme_color": "#000000",
     "display": "standalone",
     "icons": [{
-        "src": "elf192.png",
+        "src": "/assets/elf192.png",
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "any"
     },{
-        "src": "elf256.png",
+        "src": "/assets/elf256.png",
         "sizes": "256x256",
         "type": "image/png",
         "purpose": "any"
     },{
-        "src": "elf512.png",
+        "src": "/assets/elf512.png",
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any"
     },
     {
-        "src": "elf192-maskable.png",
+        "src": "/assets/elf192-maskable.png",
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "maskable"
     },{
-        "src": "elf256-maskable.png",
+        "src": "/assets/elf256-maskable.png",
         "sizes": "256x256",
         "type": "image/png",
         "purpose": "maskable"
     },{
-        "src": "elf512-maskable.png",
+        "src": "/assets/elf512-maskable.png",
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "maskable"

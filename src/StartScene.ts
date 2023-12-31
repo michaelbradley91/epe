@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, HIGHLIGHTED_TEXT_COLOR, START_MENU_FONT_SIZE, TEXT_COLOR } from './constants';
 import { GameState, init_game_state } from './logic';
+import StartScreen from '../assets/StartScreen.png';
 
 const PRESENT_START_X = 288;
 const PRESENT_END_X = 666;
