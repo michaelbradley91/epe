@@ -35,6 +35,8 @@ jobs:
                   with:
                     node-version: 20
                     cache: 'npm'
+                - name: Packages
+                  run: npm install
                 - name: Build
                   run: npm run build
                 - name: Setup Pages
