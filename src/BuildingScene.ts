@@ -71,7 +71,6 @@ export default class BuildingScene extends Phaser.Scene {
 			this.game_state = data.game_state;
 		}
         this.grid_size = Math.floor(GRID_WIDTH / this.game_state.level_solutions[this.game_state.current_level].width);
-        console.log("Init building");
     }
 
     reset_pointer_up_flags()
@@ -190,6 +189,7 @@ export default class BuildingScene extends Phaser.Scene {
                 if (this.eraser_button === highlighted_button)
                 {
                     this.erase_tile(grid_coordinate.x, grid_coordinate.y);
+                    this.game_state.level_solutions[this.game_state.current_level] = this.extract_grid();
                     return;
                 }
 
@@ -201,6 +201,8 @@ export default class BuildingScene extends Phaser.Scene {
                 }
                 const angle = this.belt_button.angle;
                 this.set_tile(grid_coordinate.x, grid_coordinate.y, highlighted_button.texture.key, angle, flipped);
+                this.game_state.level_solutions[this.game_state.current_level] = this.extract_grid();
+                console.log("Updated grid")
             }
         }, this);
 
@@ -279,12 +281,13 @@ export default class BuildingScene extends Phaser.Scene {
      */
     set_tile(grid_x: number, grid_y: number, image: string, angle: number, flipped: boolean): Phaser.GameObjects.Image | undefined
     {
+        console.log("setting tile", grid_x, grid_y, image);
         // You cannot change the elf or Santa's sleigh
         const grid_index = this.get_grid_index(grid_x, grid_y);
         const grid_entry = this.grid[grid_index];
 
-        if (grid_entry && grid_entry === this.grid_elf) return;
-        if (grid_entry && grid_entry === this.grid_sleigh) return;
+        if (grid_entry && grid_entry === this.grid_elf && this.image_to_piece(image) != Piece.Elf) return;
+        if (grid_entry && grid_entry === this.grid_sleigh && this.image_to_piece(image) != Piece.Sleigh) return;
 
         this.erase_tile(grid_x, grid_y);
 
@@ -307,6 +310,96 @@ export default class BuildingScene extends Phaser.Scene {
         return new_image;
     }
 
+    piece_to_image(piece: Piece): string | undefined
+    {
+        if (!piece)
+        {
+            return;
+        }
+        else if (piece == Piece.Belt)
+        {
+            return this.belt_button.texture.key;
+        }
+        else if (piece == Piece.BluePrinter)
+        {
+            return this.printer_blue_button.texture.key;
+        }
+        else if (piece == Piece.GreenPrinter)
+        {
+            return this.printer_green_button.texture.key
+        }
+        else if (piece == Piece.OrangePrinter)
+        {
+            return this.printer_orange_button.texture.key
+        }
+        else if (piece == Piece.RedPrinter)
+        {
+            return this.printer_red_button.texture.key;
+        }
+        else if (piece == Piece.BlueOrangeSwitch)
+        {
+            return this.switch_blue_orange_button.texture.key;
+        }
+        else if (piece == Piece.RedGreenSwitch)
+        {
+            return this.switch_red_green_button.texture.key;
+        }
+        else if (piece == Piece.Elf)
+        {
+            return "elf";
+        }
+        else if (piece == Piece.Sleigh)
+        {
+            return "sleigh";
+        }
+    }
+
+    image_to_piece(image: string): Piece
+    {
+        console.log("image conversion", image);
+        if (!image)
+        {
+            return Piece.Nothing;
+        }
+        else if (image == this.belt_button.texture.key)
+        {
+            return Piece.Belt;
+        }
+        else if (image == this.printer_blue_button.texture.key)
+        {
+            return Piece.BluePrinter;
+        }
+        else if (image == this.printer_green_button.texture.key)
+        {
+            return Piece.GreenPrinter;
+        }
+        else if (image == this.printer_orange_button.texture.key)
+        {
+            return Piece.OrangePrinter;
+        }
+        else if (image == this.printer_red_button.texture.key)
+        {
+            return Piece.RedPrinter;
+        }
+        else if (image == this.switch_blue_orange_button.texture.key)
+        {
+            return Piece.BlueOrangeSwitch;
+        }
+        else if (image == this.switch_red_green_button.texture.key)
+        {
+            return Piece.RedGreenSwitch;
+        }
+        else if (image == this.grid_elf?.texture.key)
+        {
+            return Piece.Elf;
+        }
+        else if (image == this.grid_sleigh?.texture.key)
+        {
+            return Piece.Sleigh;
+        }
+        return Piece.Nothing;
+    }
+
     /*
      * Populate what is drawn into a semantic grid
      */
@@ -322,48 +415,8 @@ export default class BuildingScene extends Phaser.Scene {
                 const entry: GridEntry = {
                     angle: (((image?.angle % 360) + 360) % 360) ?? 0,
                     flipped: (image?.flipX || image?.flipY) ?? false,
-                    piece: Piece.Nothing
+                    piece: this.image_to_piece(image?.texture.key)
                 };
-                if (!image)
-                {
-                    entry.piece = Piece.Nothing;
-                }
-                else if (image.texture.key == this.belt_button.texture.key)
-                {
-                    entry.piece = Piece.Belt;
-                }
-                else if (image.texture.key == this.printer_blue_button.texture.key)
-                {
-                    entry.piece = Piece.BluePrinter;
-                }
-                else if (image.texture.key == this.printer_green_button.texture.key)
-                {
-                    entry.piece = Piece.GreenPrinter;
-                }
-                else if (image.texture.key == this.printer_orange_button.texture.key)
-                {
-                    entry.piece = Piece.OrangePrinter;
-                }
-                else if (image.texture.key == this.printer_red_button.texture.key)
-                {
-                    entry.piece = Piece.RedPrinter;
-                }
-                else if (image.texture.key == this.switch_blue_orange_button.texture.key)
-                {
-                    entry.piece = Piece.BlueOrangeSwitch;
-                }
-                else if (image.texture.key == this.switch_red_green_button.texture.key)
-                {
-                    entry.piece = Piece.RedGreenSwitch;
-                }
-                else if (image.texture.key == this.grid_elf?.texture.key)
-                {
-                    entry.piece = Piece.Elf;
-                }
-                else if (image.texture.key == this.grid_sleigh?.texture.key)
-                {
-                    entry.piece = Piece.Sleigh;
-                }
                 grid.entries[x][y] = entry;
             }
         }
@@ -381,7 +434,7 @@ export default class BuildingScene extends Phaser.Scene {
 
         if (!grid_entry) return;
         if (grid_entry && grid_entry === this.grid_elf) return;
-        if (grid_entry &&grid_entry === this.grid_sleigh) return;
+        if (grid_entry && grid_entry === this.grid_sleigh) return;
 
         grid_entry.destroy();
         delete this.grid[grid_index];
@@ -389,11 +442,28 @@ export default class BuildingScene extends Phaser.Scene {
 
     setup_level()
     {
-        // TODO load these details from level select
-        this.grid_size = 64;
-        this.grid_elf = this.set_tile(0, 2, "elf", 0, false);
-        this.grid_sleigh = this.set_tile(9, 2, "sleigh", 0, false);
-
+        console.log("Setting up level");
+        const level_solution: Grid = this.game_state.level_solutions[this.game_state.current_level];
+        for (let x = 0; x < level_solution.width; x += 1)
+        {
+            for (let y = 0; y < level_solution.height; y += 1)
+            {
+                const image_key = this.piece_to_image(level_solution.entries[x][y].piece);
+                if (image_key)
+                {
+                    console.log("Adding (", x, ",", y, ") piece:", image_key);
+                    const image = this.set_tile(x, y, image_key, level_solution.entries[x][y].angle, level_solution.entries[x][y].flipped);
+                    if (level_solution.entries[x][y].piece == Piece.Elf)
+                    {
+                        this.grid_elf = image;
+                    }
+                    if (level_solution.entries[x][y].piece == Piece.Sleigh)
+                    {
+                        this.grid_sleigh = image;
+                    }
+                }
+            }
+        }
         this.add_instructions("The basics", "Accept all presents starting with two red markers.");
     }
 
@@ -425,7 +495,6 @@ export default class BuildingScene extends Phaser.Scene {
 
     play_button_pressed()
     {
-        const grid = this.extract_grid();
         this.scene.start("play", {game_state: this.game_state});
     }
 

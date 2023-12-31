@@ -139,13 +139,13 @@ export default class StartScene extends Phaser.Scene {
 		}, this);
 
 		this.anims.create({
-			key: "menu_belt",
+			key: "menu_belt_start",
 			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 6}),
 			frameRate: 30,
 			repeat: -1,
 		})
 
-		this.add.sprite(288, 464, "animated_long_belt").setOrigin(0, 0).setScale(2).play("menu_belt");
+		this.add.sprite(288, 464, "animated_long_belt").setOrigin(0, 0).setScale(2).play("menu_belt_start");
 		this.present = this.add.sprite(PRESENT_START_X, 490, "present").setScale(2);
 	}
 

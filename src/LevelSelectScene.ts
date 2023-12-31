@@ -85,6 +85,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 
 	start_level(level: number)
 	{
+		this.game_state.current_level = level;
 		this.scene.start("building", {game_state: this.game_state});
 	}
 
@@ -116,13 +117,13 @@ export default class LevelSelectScene extends Phaser.Scene {
 		});
 		this.add_number_images();
 		this.anims.create({
-			key: "menu_belt",
+			key: "menu_belt_level_select",
 			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 6}),
 			frameRate: 30,
 			repeat: -1,
 		})
 
-		this.add.sprite(288, 464, "animated_long_belt").setOrigin(0, 0).setScale(2).play("menu_belt");
+		this.add.sprite(288, 464, "animated_long_belt").setOrigin(0, 0).setScale(2).play("menu_belt_level_select");
 		this.present = this.add.sprite(PRESENT_START_X, 490, "present").setScale(2);
     }
 
