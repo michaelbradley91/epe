@@ -1,11 +1,11 @@
 import Phaser from 'phaser'
 import { CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, PROGRESS_PRESENT_MAX_X, PROGRESS_PRESENT_MIN_X, TILE_SIZE } from './constants';
 import { Action, Bauble, Grid, GridEntry, Piece, Position, Step, TestResult } from './types';
-import { find_piece, test_condition } from './logic';
+import { GameState, find_piece, init_game_state, test_condition } from './logic';
 
 export default class PlayScene extends Phaser.Scene {
+    game_state!: GameState;
     grid!: Grid;
-    level!: number;
     test_result!: TestResult;
     play_speed!: number;
     playing!: boolean;
@@ -34,38 +34,17 @@ export default class PlayScene extends Phaser.Scene {
 		super('play')
 	}
 
-    init(data: {grid: Grid, level: number})
+    init(data: {game_state: GameState})
     {
-        console.log("Init");
-        this.grid = data.grid;
-        this.level = data.level;
-
-        if (!this.grid)
-        {
-            this.grid = { width: Math.floor(GRID_WIDTH / 64), height: Math.floor(GRID_HEIGHT / 64), entries: []};
-            for (let x = 0; x < this.grid.width; x += 1)
-            {
-                this.grid.entries[x] = [];
-                for (let y = 0; y < this.grid.height; y += 1)
-                {
-                    this.grid.entries[x][y] = {
-                        angle: 0,
-                        flipped: false,
-                        piece: Piece.Nothing
-                    }
-                }
-            }
-            this.grid.entries[0][0].piece = Piece.Elf;
-            this.grid.entries[0][1].piece = Piece.Sleigh;
-            this.grid.entries[1][0].piece = Piece.Belt;
-            this.grid.entries[1][1].piece = Piece.Belt;
-            this.grid.entries[1][1].angle = 90;
-        }
-
-        if (!this.level)
-        {
-            this.level = 0;
-        }
+		if (!data || !data.game_state)
+		{
+			this.game_state = init_game_state();
+		}
+		else
+		{
+			this.game_state = data.game_state;
+		}
+        this.grid = this.game_state.level_solutions[this.game_state.current_level];
     }
 
     preload() {
@@ -171,7 +150,7 @@ export default class PlayScene extends Phaser.Scene {
             if (this.exit_selected)
             {
                 this.reset_pointer_up_flags();
-                this.scene.start("building");
+                this.scene.start("building", {game_state: this.game_state});
             }
             this.reset_pointer_up_flags();
         }, this);

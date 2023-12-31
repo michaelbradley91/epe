@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, HIGHLIGHTED_TEXT_COLOR, START_MENU_FONT_SIZE, TEXT_COLOR } from './constants';
+import { GameState, init_game_state } from './logic';
 
 const PRESENT_START_X = 288;
 const PRESENT_END_X = 666;
@@ -9,9 +10,22 @@ export default class StartScene extends Phaser.Scene {
 	options_text: Phaser.GameObjects.Text | undefined;
 	quit_text: Phaser.GameObjects.Text | undefined;
 	present: Phaser.GameObjects.Sprite | undefined;
+	game_state!: GameState;
 
 	constructor() {
 		super('start')
+	}
+
+	init(data: {game_state: GameState})
+	{
+		if (!data || !data.game_state)
+		{
+			this.game_state = init_game_state();
+		}
+		else
+		{
+			this.game_state = data.game_state;
+		}
 	}
 
 	preload() {
@@ -145,7 +159,7 @@ export default class StartScene extends Phaser.Scene {
 
 	start_game()
 	{
-		this.scene.start("level-select");
+		this.scene.start("level-select", {game_state: this.game_state});
 	}
 
 	open_options()

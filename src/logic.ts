@@ -3,6 +3,7 @@
  */
 
 import { MAX_PATH_LENGTH, NUMBER_LEVELS } from "./constants";
+import { init_grid } from "./levels";
 import { Action, Bauble, Grid, Piece, Position, Step, TestResult } from "./types";
 
 const POSITION_DELTAS: { [id: number] : Position; } = {};
@@ -21,14 +22,26 @@ export type GameState = {
     options: {}
 }
 
-export function init_game_state()
+/*
+ * Initialise the game from scratch
+ */
+export function init_game_state(): GameState
 {
-    const level_solutions: [Grid] = [];
-    const level_solved: [boolean] = [];
+    const level_solutions: [Grid] = [{width: 0, height: 0, entries: []}];
+    const level_solved: [boolean] = [false];
+    level_solutions.pop();
+    level_solved.pop
     for (let level = 0; level < NUMBER_LEVELS; level += 1)
     {
-        level_solutions.push()
+        level_solutions.push(init_grid(level));
+        level_solved.push(false);
     }
+    return {
+        level_solutions: level_solutions,
+        level_solved: level_solved,
+        current_level: 0,
+        options: {}
+    };
 }
 
 /* 
@@ -81,6 +94,10 @@ export function compute_path(baubles: Bauble[], grid: Grid): Step[]
             else if (entry.piece == Piece.Sleigh)
             {
                 step = {action: Action.Accept};
+            }
+            else if (entry.piece == Piece.Nothing)
+            {
+                step = {action: Action.Reject};
             }
             else if (entry.piece == Piece.Belt)
             {

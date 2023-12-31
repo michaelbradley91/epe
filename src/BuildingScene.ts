@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR, TILE_SIZE } from './constants';
 import { Grid, GridEntry, Piece } from './types';
+import { GameState, init_game_state } from './logic';
 
 export default class BuildingScene extends Phaser.Scene {
 
@@ -24,11 +25,11 @@ export default class BuildingScene extends Phaser.Scene {
     reflect_button!: Phaser.GameObjects.Image;
     play_button!: Phaser.GameObjects.Image;
 
-    // Misc state
-    level: number = -1;
+    // Game state
+    game_state!: GameState;
 
     // Stores the grid details
-    grid_size: number = 64;
+    grid_size!: number;
     level_number_sprites: { [id: number]: Phaser.GameObjects.Sprite } = {};
     // The grid index is a number of x + y * <number of tiles in grid>
     grid: { [id: number]: Phaser.GameObjects.Image } = {};
@@ -59,9 +60,17 @@ export default class BuildingScene extends Phaser.Scene {
         this.load.image("sleigh", "assets/Sleigh.png");
 	}
 
-    init(data: {level: number})
+    init(data: {game_state: GameState})
     {
-        this.level = data.level;
+		if (!data || !data.game_state)
+		{
+			this.game_state = init_game_state();
+		}
+		else
+		{
+			this.game_state = data.game_state;
+		}
+        this.grid_size = Math.floor(GRID_WIDTH / this.game_state.level_solutions[this.game_state.current_level].width);
     }
 
     reset_pointer_up_flags()
@@ -140,7 +149,7 @@ export default class BuildingScene extends Phaser.Scene {
             if (this.exit_selected)
             {
                 this.reset_pointer_up_flags();
-                this.scene.start("level-select");
+                this.scene.start("level-select", {game_state: this.game_state});
             }
             this.reset_pointer_up_flags();
         }, this);
@@ -416,7 +425,7 @@ export default class BuildingScene extends Phaser.Scene {
     play_button_pressed()
     {
         const grid = this.extract_grid();
-        this.scene.start("play", { grid: grid, level: this.level });
+        this.scene.start("play", {game_state: this.game_state});
     }
 
     is_highlighted(button: Phaser.GameObjects.Image)

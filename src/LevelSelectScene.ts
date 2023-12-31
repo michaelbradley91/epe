@@ -1,9 +1,11 @@
 import Phaser from 'phaser'
+import { GameState, init_game_state } from './logic';
 
 const PRESENT_START_X = 288;
 const PRESENT_END_X = 666;
 
 export default class LevelSelectScene extends Phaser.Scene {
+	game_state!: GameState;
 	present: Phaser.GameObjects.Sprite | undefined;
 	level_selected: number = 0;
 	exit_selected: boolean = false;
@@ -12,6 +14,18 @@ export default class LevelSelectScene extends Phaser.Scene {
 
     constructor() {
 		super('level-select')
+	}
+
+	init(data: {game_state: GameState})
+	{
+		if (!data || !data.game_state)
+		{
+			this.game_state = init_game_state();
+		}
+		else
+		{
+			this.game_state = data.game_state;
+		}
 	}
 
 	preload() {
@@ -71,7 +85,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 
 	start_level(level: number)
 	{
-		this.scene.start("building", { level: level });
+		this.scene.start("building", {game_state: this.game_state});
 	}
 
 	update_numbers(new_level_selected: number)
@@ -94,7 +108,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 		exit_door.on("pointerup", () => {
 			if (this.exit_selected)
 			{
-				this.scene.start("start");
+				this.scene.start("start", {game_state: this.game_state});
 			}
 		}, this);
 		this.input.on("pointerup", () => {
