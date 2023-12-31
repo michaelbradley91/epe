@@ -117,7 +117,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 		this.add_number_images();
 		this.anims.create({
 			key: "menu_belt",
-			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 7}),
+			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 6}),
 			frameRate: 30,
 			repeat: -1,
 		})

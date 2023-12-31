@@ -140,7 +140,7 @@ export default class StartScene extends Phaser.Scene {
 
 		this.anims.create({
 			key: "menu_belt",
-			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 7}),
+			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 6}),
 			frameRate: 30,
 			repeat: -1,
 		})

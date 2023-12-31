@@ -71,6 +71,7 @@ export default class BuildingScene extends Phaser.Scene {
 			this.game_state = data.game_state;
 		}
         this.grid_size = Math.floor(GRID_WIDTH / this.game_state.level_solutions[this.game_state.current_level].width);
+        console.log("Init building");
     }
 
     reset_pointer_up_flags()
