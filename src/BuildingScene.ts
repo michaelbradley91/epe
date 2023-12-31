@@ -413,8 +413,8 @@ export default class BuildingScene extends Phaser.Scene {
             {
                 const image = this.grid[this.get_grid_index(x, y)];
                 const entry: GridEntry = {
-                    angle: (((image?.angle % 360) + 360) % 360) ?? 0,
-                    flipped: (image?.flipX || image?.flipY) ?? false,
+                    angle: ((((image?.angle ?? 0) % 360) + 360) % 360),
+                    flipped: (image?.flipX || image?.flipY),
                     piece: this.image_to_piece(image?.texture.key)
                 };
                 grid.entries[x][y] = entry;
