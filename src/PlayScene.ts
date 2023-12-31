@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
-import { BAUBLE_SIZE, CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, TILE_SIZE } from './constants';
-import { Action, Bauble, Grid, GridEntry, Piece, Step, TestResult } from './types';
+import { CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, PROGRESS_PRESENT_MAX_X, PROGRESS_PRESENT_MIN_X, TILE_SIZE } from './constants';
+import { Action, Bauble, Grid, GridEntry, Piece, Position, Step, TestResult } from './types';
 import { find_piece, test_condition } from './logic';
 
 export default class PlayScene extends Phaser.Scene {
@@ -25,6 +25,7 @@ export default class PlayScene extends Phaser.Scene {
     speed_up_button!: Phaser.GameObjects.Image;
     slow_down_button!: Phaser.GameObjects.Image;
     present!: Phaser.GameObjects.Image;
+    progress_present!: Phaser.GameObjects.Image;
     christmas_tree_baubles: Phaser.GameObjects.Image[] = [];
     christmas_tree_tinsel: Phaser.GameObjects.Image[] = [];
     write_elf!: Phaser.GameObjects.Image;
@@ -35,6 +36,7 @@ export default class PlayScene extends Phaser.Scene {
 
     init(data: {grid: Grid, level: number})
     {
+        console.log("Init");
         this.grid = data.grid;
         this.level = data.level;
 
@@ -67,6 +69,7 @@ export default class PlayScene extends Phaser.Scene {
     }
 
     preload() {
+        console.log("Preloading");
 		this.load.image("running", "assets/Running.png");
 		this.load.image("exit_door_belt", "assets/Return_01.png");
         this.load.image("replay", "assets/Repeat_01.png");
@@ -104,12 +107,14 @@ export default class PlayScene extends Phaser.Scene {
 
     create()
     {
+        console.log("Creating");
         const running_image = this.add.image(0, 0, 'running').setOrigin(0, 0);
         const button_y = running_image.height - 74;
         this.exit_button = this.add.image(16, button_y, "exit_door_belt").setOrigin(0, 0).setInteractive().setScale(2);
         this.replay_button = this.add.image(104, button_y, "replay").setOrigin(0, 0).setInteractive().setScale(2);
         this.play_button = this.add.image(192, button_y, "play").setOrigin(0, 0).setInteractive().setScale(2);
         this.pause_button = this.add.image(192, button_y, "pause").setOrigin(0, 0).setInteractive().setScale(2);
+        this.progress_present = this.add.image(PROGRESS_PRESENT_MIN_X, button_y - 6, "present").setOrigin(0, 0).setScale(2);
         
         // Place the baubles on the Christmas Tree
         for (let y = 0; y < CHRISTMAS_TREE_HEIGHT; y += 1)
@@ -421,8 +426,13 @@ export default class PlayScene extends Phaser.Scene {
         {
             this.active_step += 1;
             // Update the baubles for the next step...
-            
+            this.process_step_baubles(this.test_result.path[this.active_step]);
         }
+
+        // Update the present location
+        const present_progress = this.get_progress_percentage();
+        const present_position = PROGRESS_PRESENT_MIN_X + (present_progress * (PROGRESS_PRESENT_MAX_X - PROGRESS_PRESENT_MIN_X));
+        this.progress_present.setX(present_position);
     }
 
     process_step_baubles(step: Step)
@@ -515,7 +525,6 @@ export default class PlayScene extends Phaser.Scene {
 
         // Finally place the write head
         let write_index = this.active_baubles.length;
-        console.log("Bauble length " + write_index);
         if (this.active_baubles.length >= CHRISTMAS_TREE_SIZE - 1)
         {
             write_index = CHRISTMAS_TREE_SIZE - 1;
@@ -536,5 +545,32 @@ export default class PlayScene extends Phaser.Scene {
         // TODO: remove the bauble from the tree
         this.active_baubles.shift();
         this.update_baubles();
+    }
+
+    /*
+     * Calculate how far the present has travelled along its route
+     */
+    get_progress_percentage(): number
+    {
+        // Work out how far along the individual step we are
+        if (this.active_step >= this.test_result.path.length)
+        {
+            return 1;
+        }
+        const heading = this.test_result.path[this.active_step].next_position;
+        if (!heading)
+        {
+            return 1;
+        }
+        const next_position = this.get_real_coordinates(heading.x, heading.y);
+        const current_position: Position = {x: this.present.x, y: this.present.y};
+
+        // Work out how far along the step we are...
+        const tile_size = Math.floor(GRID_WIDTH / this.grid.width);
+        const step_progress = (tile_size - Math.abs(((next_position.x - current_position.x) + (next_position.y - current_position.y)))) / tile_size;
+        // Work out how much percent each step is worth...
+        const step_percent = 1 / (this.test_result.path.length - 1);
+        // Then the step progress is a fraction of this...
+        return (step_percent * this.active_step) + (step_percent * step_progress);
     }
 }

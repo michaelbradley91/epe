@@ -1,3 +1,4 @@
+export const NUMBER_LEVELS = 30;
 
 /*
  * Colours
@@ -29,6 +30,9 @@ export const CHRISTMAS_TREE_LEFT = 0;
 export const CHRISTMAS_TREE_WIDTH = 4;
 export const CHRISTMAS_TREE_HEIGHT = 5;
 export const CHRISTMAS_TREE_SIZE = CHRISTMAS_TREE_WIDTH * CHRISTMAS_TREE_HEIGHT;
+
+export const PROGRESS_PRESENT_MIN_X = 400;
+export const PROGRESS_PRESENT_MAX_X = 766;
 
 /* 
  * Fonts

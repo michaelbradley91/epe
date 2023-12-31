@@ -2,7 +2,7 @@
  * This module contains all the "thinking" parts of the game
  */
 
-import { MAX_PATH_LENGTH } from "./constants";
+import { MAX_PATH_LENGTH, NUMBER_LEVELS } from "./constants";
 import { Action, Bauble, Grid, Piece, Position, Step, TestResult } from "./types";
 
 const POSITION_DELTAS: { [id: number] : Position; } = {};
@@ -10,6 +10,26 @@ POSITION_DELTAS[0] = { x: 0, y: 1 };
 POSITION_DELTAS[90] = { x: -1, y: 0 };
 POSITION_DELTAS[180] = { x: 0, y: -1 };
 POSITION_DELTAS[270] = { x: 1, y: 0 };
+
+/*
+ * Handles all persistent game state
+ */
+export type GameState = {
+    level_solutions: [Grid],
+    level_solved: [boolean],
+    current_level: number,
+    options: {}
+}
+
+export function init_game_state()
+{
+    const level_solutions: [Grid] = [];
+    const level_solved: [boolean] = [];
+    for (let level = 0; level < NUMBER_LEVELS; level += 1)
+    {
+        level_solutions.push()
+    }
+}
 
 /* 
  * Return the location of a piece or undefined if it does not exist.
