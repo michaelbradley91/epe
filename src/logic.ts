@@ -227,6 +227,8 @@ export function compute_path(baubles: Bauble[], grid: Grid): Step[]
     return steps;
 }
 
+// Test
+
 /*
  Test against the given condition and grid, trying to find a case that fails
  */
