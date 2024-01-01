@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	plugins: [],
-	base: '/',
+	base: '/epe/',
 	server: {
 		host: '0.0.0.0',
 		port: 8194,

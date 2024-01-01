@@ -16,7 +16,7 @@
 	<style media='screen' type='text/css'>
 		@font-face {
 		  font-family: retroGaming;
-		  src: url('assets/Retro%20Gaming.ttf');
+		  src: url('assets/Retro Gaming.ttf');
 		  font-weight:400;
 		  font-weight:normal;
 		  font-smooth:never;
@@ -26,9 +26,12 @@
 	<div style="font-family:retroGaming; position:absolute; left:-1000px; visibility:hidden;">.</div>
 	<div id="app"></div>
 	<script>
+		var href = new URL(window.location.href).pathname;
+		var dir = href.substring(0, href.lastIndexOf('/')) + "/";
+		console.log("dir is", dir);
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', function() {
-				navigator.serviceWorker.register('./sw.js', {scope: '/epe/'}).then(function(registration) {
+				navigator.serviceWorker.register('./sw.js', {scope: dir}).then(function(registration) {
 					console.log('ServiceWorker registration successful with scope: ', registration.scope);
 				}, function(err) {
 					console.log('ServiceWorker registration failed: ', err);
