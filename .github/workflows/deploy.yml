@@ -37,6 +37,8 @@ jobs:
                     cache: 'npm'
                 - name: Packages
                   run: npm install
+                - name: Fix manifest
+                  run: mv ./manifest.prod.json ./manifest.json
                 - name: Build
                   run: npm run build
                 - name: Copy assets
