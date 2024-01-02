@@ -2,7 +2,7 @@
  * This module contains all the "thinking" parts of the game
  */
 
-import { MAX_PATH_LENGTH, NUMBER_LEVELS } from "./constants";
+import { MAX_PATH_LENGTH, MAX_THINKING_TIME_MILLISECONDS, NUMBER_LEVELS } from "./constants";
 import { init_grid, number_to_baubles } from "./levels";
 import { Action, Bauble, Grid, Level, LevelType, Piece, Position, Step, TestResult } from "./types";
 
@@ -140,6 +140,7 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
             }
             else if (entry.piece == Piece.BlueOrangeSwitch || entry.piece == Piece.RedGreenSwitch)
             {
+                console.log("Processing switch");
                 if (current_baubles.length == 0)
                 {
                     step = {
@@ -150,6 +151,7 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                 else
                 {
                     const next_bauble = current_baubles.at(0);
+                    console.log("Got next bauble: ", next_bauble);
                     let new_angle = entry.angle;
                     let action = Action.None;
                     // This is where it gets fiddly... which way is everything facing?
@@ -208,9 +210,13 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                         }
                     }
                     new_angle = ((new_angle % 360) + 360) % 360;
+                    if (action == Action.Read)
+                    {
+                        current_baubles.shift();
+                    }
                     step = {
                         action: action,
-                        next_position: {x: step.next_position.x + POSITION_DELTAS[new_angle].x, y: step.next_position.y + POSITION_DELTAS[entry.angle].y}
+                        next_position: {x: step.next_position.x + POSITION_DELTAS[new_angle].x, y: step.next_position.y + POSITION_DELTAS[new_angle].y}
                     };
                 }
             }
@@ -253,29 +259,31 @@ export function test_level_solution_case(level: Level, solution: Grid, baubles: 
 /*
  Test against the given condition and grid, trying to find a case that fails
  */
-export function test_level_solution(level: Level, solution: Grid): TestResult
+export function test_level_solution(level: Level, solution: Grid, next_test_case: number = 1): TestResult
 {
+    const start_time = Date.now();
     // Brute force a large number of possible inputs
-    for (let i = 0; i < 2 ** 12; i += 1)
+    for (let i = next_test_case; i < 2 ** 13; i += 1)
     {
-        const baubles_red = number_to_baubles(i, Bauble.Red);
-        const baubles_red_result = test_level_solution_case(level, solution, baubles_red);
-        if (!baubles_red_result.result)
+        const bauble_colour = i % 2 == 0 ? Bauble.Red : Bauble.Blue;
+        const baubles = number_to_baubles(Math.floor(i / 2), bauble_colour);
+        const baubles_result = test_level_solution_case(level, solution, baubles);
+        if (!baubles_result.result)
         {
-            return {passed: false, baubles: baubles_red, path: baubles_red_result.path};
+            return {passed: false, baubles: baubles, path: baubles_result.path, next_test_case: undefined};
         }
-
-        const baubles_blue = number_to_baubles(i, Bauble.Blue);
-        const baubles_blue_result = test_level_solution_case(level, solution, baubles_blue);
-        if (!baubles_blue_result.result)
+        console.log(baubles, "passed");
+        // Check if we have taken too long
+        const new_time = Date.now();
+        if (new_time - start_time >= MAX_THINKING_TIME_MILLISECONDS)
         {
-            return {passed: false, baubles: baubles_blue, path: baubles_blue_result.path};
+            return {passed: true, baubles: baubles, path: baubles_result.path, next_test_case: i + 1};
         }
     }
 
     // Success! Show an interesting case
     const good_case = Object.assign([], level.good_case);
     const path = compute_path(good_case, solution);
-    return {passed: true, baubles: good_case, path: path.steps};
+    return {passed: true, baubles: good_case, path: path.steps, next_test_case: undefined};
 }
 

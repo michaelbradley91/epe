@@ -12,6 +12,8 @@ export default class PlayScene extends Phaser.Scene {
     playing!: boolean;
     active_baubles!: Bauble[];
     active_step!: number;
+    analysing_solution: boolean = true;
+    next_test_case: number = 1;
 
     exit_selected!: boolean;
     replay_selected!: boolean;
@@ -30,6 +32,7 @@ export default class PlayScene extends Phaser.Scene {
     christmas_tree_baubles: Phaser.GameObjects.Image[] = [];
     christmas_tree_tinsel: Phaser.GameObjects.Image[] = [];
     write_elf!: Phaser.GameObjects.Image;
+    play_belt!: Phaser.GameObjects.Sprite;
 
     constructor() {
 		super('play')
@@ -75,6 +78,7 @@ export default class PlayScene extends Phaser.Scene {
         this.load.spritesheet("tinsel", "assets/Tinsel.png", { frameWidth: 16, frameHeight: 16});
         this.load.image("write_elf", "assets/Write_Head.png");
         this.load.image("read_elf", "assets/Read_Head.png");
+        this.load.spritesheet("animated_long_belt", "assets/Long_Belt_Animated.png", { frameWidth: 192, frameHeight: 32 });
 	}
 
     reset_pointer_up_flags()
@@ -89,13 +93,14 @@ export default class PlayScene extends Phaser.Scene {
 
     create()
     {
+        this.analysing_solution = true;
+        this.next_test_case = 1;
         const running_image = this.add.image(0, 0, 'running').setOrigin(0, 0);
         const button_y = running_image.height - 74;
         this.exit_button = this.add.image(16, button_y, "exit_door_belt").setOrigin(0, 0).setInteractive().setScale(2);
         this.replay_button = this.add.image(104, button_y, "replay").setOrigin(0, 0).setInteractive().setScale(2);
         this.play_button = this.add.image(192, button_y, "play").setOrigin(0, 0).setInteractive().setScale(2);
         this.pause_button = this.add.image(192, button_y, "pause").setOrigin(0, 0).setInteractive().setScale(2);
-        this.progress_present = this.add.image(PROGRESS_PRESENT_MIN_X, button_y - 6, "present").setOrigin(0, 0).setScale(2);
         
         // Place the baubles on the Christmas Tree
         for (let y = 0; y < CHRISTMAS_TREE_HEIGHT; y += 1)
@@ -124,9 +129,20 @@ export default class PlayScene extends Phaser.Scene {
 
         // Hide play to toggle with pause
         this.play_button.setVisible(false).setActive(false);
+        this.anims.create({
+			key: "play_belt",
+			frames: this.anims.generateFrameNumbers("animated_long_belt", {start: 0, end: 6}),
+			frameRate: 30,
+			repeat: -1,
+		})
 
+		this.play_belt = this.add.sprite(425, button_y, "animated_long_belt").setOrigin(0, 0).setScale(2);
         this.speed_up_button = this.add.image(816, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2);
         this.slow_down_button = this.add.image(352, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2).setFlipX(true);
+        this.add.image(292, button_y, "elf").setOrigin(0, 0).setScale(2);
+        this.add.image(888, button_y - 8, "sleigh").setOrigin(0, 0).setScale(2);
+        this.progress_present = this.add.image(PROGRESS_PRESENT_MIN_X, button_y - 6, "present").setOrigin(0, 0).setScale(2);
+        this.pause();
         this.draw_grid();
 
         this.exit_button.on("pointerdown", () => {
@@ -157,47 +173,41 @@ export default class PlayScene extends Phaser.Scene {
             this.reset_pointer_up_flags();
         }, this);
         this.replay_button.on("pointerup", () => {
-            if (this.replay_selected)
+            if (this.replay_selected && !this.analysing_solution)
             {
                 this.replay();
             }
             this.reset_pointer_up_flags();
         }, this);
         this.play_button.on("pointerup", () => {
-            if (this.play_selected)
+            if (this.play_selected && !this.analysing_solution)
             {
                 this.play();
             }
             this.reset_pointer_up_flags();
         }, this);
         this.pause_button.on("pointerup", () => {
-            if (this.pause_selected)
+            if (this.pause_selected && !this.analysing_solution)
             {
                 this.pause();
             }
             this.reset_pointer_up_flags();
         }, this);
         this.speed_up_button.on("pointerup", () => {
-            if (this.speed_up_selected)
+            if (this.speed_up_selected && !this.analysing_solution)
             {
                 this.speed_up();
             }
             this.reset_pointer_up_flags();
         }, this);
         this.slow_down_button.on("pointerup", () => {
-            if (this.slow_down_selected)
+            if (this.slow_down_selected && !this.analysing_solution)
             {
                 this.slow_down();
             }
             this.reset_pointer_up_flags();
         }, this);
-
-        // Test the player's creation
-        this.test_result = test_level_solution(LEVELS[this.game_state.current_level], this.get_grid());
-        this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
-        this.playing = true;
-        this.update_baubles();
 
         // Decide what a sensible play speed is!!
         this.play_speed = 2;
@@ -209,7 +219,7 @@ export default class PlayScene extends Phaser.Scene {
             const tile_size = GRID_WIDTH / this.get_grid().width;
             const scaling = tile_size / TILE_SIZE;
             const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
-            this.present = this.add.image(elf_position.x, elf_position.y, "present").setOrigin(0, 0).setScale(scaling);
+            this.present = this.add.image(elf_position.x, elf_position.y, "present").setOrigin(0, 0.1).setScale(scaling);
         }
     }
 
@@ -244,11 +254,10 @@ export default class PlayScene extends Phaser.Scene {
 
     replay()
     {
-        this.play_button.setVisible(false).setActive(false);
-        this.pause_button.setVisible(true).setActive(true);
-        this.playing = true;
+        console.log("Test result baubles: ", this.test_result.baubles);
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
+        this.update_baubles();
         const elf_location = find_piece(this.get_grid(), Piece.Elf);
         if (elf_location)
         {
@@ -262,6 +271,7 @@ export default class PlayScene extends Phaser.Scene {
     {
         this.play_button.setVisible(false).setActive(false);
         this.pause_button.setVisible(true).setActive(true);
+        this.play_belt.play("play_belt");
         this.playing = true;
     }
 
@@ -269,6 +279,7 @@ export default class PlayScene extends Phaser.Scene {
     {
         this.pause_button.setVisible(false).setActive(false);
         this.play_button.setVisible(true).setActive(true);
+        this.play_belt.stop();
         this.playing = false;
     }
 
@@ -348,9 +359,28 @@ export default class PlayScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number): void {
-        // Do nothing if we aren't playing
-        if (!this.playing)
+        // Do nothing if we aren't playing or thinking
+        if (!this.playing && !this.analysing_solution)
         {
+            return;
+        }
+
+        if (this.analysing_solution)
+        {
+            // Test the player's creation
+            this.test_result = test_level_solution(LEVELS[this.game_state.current_level], this.get_grid(), this.next_test_case);
+            this.active_baubles = Object.assign([], this.test_result.baubles);
+            this.update_baubles();
+            if (this.test_result.next_test_case)
+            {
+                this.next_test_case = this.test_result.next_test_case;
+            }
+            else
+            {
+                this.analysing_solution = false;
+                // TODO show message according to result!
+                console.log("Test result: ", this.test_result.path);
+            }
             return;
         }
 

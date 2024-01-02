@@ -60,6 +60,9 @@ export const MAX_PATH_LENGTH = 1000;
 export const MIN_PLAY_SPEED = 1;
 export const MAX_PLAY_SPEED = 5;
 
+// How long can the analyser work before returning control to the UI
+export const MAX_THINKING_TIME_MILLISECONDS = 30;
+
 /*
  * Strings
  */
