@@ -3,8 +3,8 @@
  */
 
 import { MAX_PATH_LENGTH, NUMBER_LEVELS } from "./constants";
-import { init_grid } from "./levels";
-import { Action, Bauble, Grid, Piece, Position, Step, TestResult } from "./types";
+import { init_grid, number_to_baubles } from "./levels";
+import { Action, Bauble, Grid, Level, LevelType, Piece, Position, Step, TestResult } from "./types";
 
 const POSITION_DELTAS: { [id: number] : Position; } = {};
 POSITION_DELTAS[0] = { x: 0, y: 1 };
@@ -64,11 +64,12 @@ export function find_piece(grid: Grid, piece: Piece): Position | undefined
 /* 
  * Compute the sequence of steps that should be carried out when moving this present through the grid
  */
-export function compute_path(baubles: Bauble[], grid: Grid): Step[]
+export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], final_baubles: Bauble[]}
 {
     // Refuse to compute the path if no starting point can be identified...
+    const current_baubles = Object.assign([], baubles);
     const start_position = find_piece(grid, Piece.Elf);
-    if (!start_position) return [];
+    if (!start_position) return {steps: [], final_baubles: current_baubles};
 
     let step: Step = {
         action: Action.None,
@@ -76,7 +77,6 @@ export function compute_path(baubles: Bauble[], grid: Grid): Step[]
     };
 
     const steps = [step];
-    const current_baubles = Object.assign([], baubles);
     while(steps.length < MAX_PATH_LENGTH && step.next_position)
     {
         // What does the next position tell us?
@@ -224,28 +224,58 @@ export function compute_path(baubles: Bauble[], grid: Grid): Step[]
         steps.push({action: Action.GiveUp});
     }
 
-    return steps;
+    return {steps: steps, final_baubles: current_baubles};
+}
+
+export function test_level_solution_case(level: Level, solution: Grid, baubles: Bauble[]): {path: Step[], result: boolean}
+{
+    if (level.type == LevelType.Accept)
+    {
+        const expected = level.test(baubles, []);
+
+        const path = compute_path(baubles, solution);
+        const last_entry = path.steps.at(-1);
+        const actual = last_entry && last_entry.action == Action.Accept;
+        return {path: path.steps, result: expected == actual};
+    }
+    
+    // Should always be accepted...
+    const path = compute_path(baubles, solution);
+    const last_entry = path.steps.at(-1);
+
+    if (!last_entry || last_entry.action != Action.Accept) 
+    {
+        return {path: path.steps, result: false};
+    }
+    return {path: path.steps, result: level.test(baubles, path.final_baubles)};
 }
 
 /*
  Test against the given condition and grid, trying to find a case that fails
  */
-export function test_condition(grid: Grid, include_blue_orange_baubles: boolean, condition: (baubles: Bauble[]) => boolean): TestResult
+export function test_level_solution(level: Level, solution: Grid): TestResult
 {
-    // TODO: do this sensibly...
-    const baubles: Bauble[] = [Bauble.Red];
-    const path = compute_path(baubles, grid);
-    
-    const last_entry = path.at(-1);
-    if (!last_entry)
+    // Brute force a large number of possible inputs
+    for (let i = 0; i < 2 ** 12; i += 1)
     {
-        return {passed: false, baubles: baubles, path: path};
+        const baubles_red = number_to_baubles(i, Bauble.Red);
+        const baubles_red_result = test_level_solution_case(level, solution, baubles_red);
+        if (!baubles_red_result.result)
+        {
+            return {passed: false, baubles: baubles_red, path: baubles_red_result.path};
+        }
+
+        const baubles_blue = number_to_baubles(i, Bauble.Blue);
+        const baubles_blue_result = test_level_solution_case(level, solution, baubles_blue);
+        if (!baubles_blue_result.result)
+        {
+            return {passed: false, baubles: baubles_blue, path: baubles_blue_result.path};
+        }
     }
-    
-    if ((last_entry.action == Action.Accept && condition(baubles)) || (last_entry.action == Action.Reject && !condition(baubles)))
-    {
-        return {passed: true, baubles: baubles, path: path};
-    }
-    return {passed: false, baubles: baubles, path: path};
+
+    // Success! Show an interesting case
+    const good_case = Object.assign([], level.good_case);
+    const path = compute_path(good_case, solution);
+    return {passed: true, baubles: good_case, path: path.steps};
 }
 

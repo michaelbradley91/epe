@@ -64,3 +64,20 @@ export type TestResult = {
     baubles: Bauble[],
     path: Step[]
 }
+
+export enum LevelType {
+    Output = 1,  // The level requires the player to change the baubles to something specific
+    Accept = 2   // The level requires the player to accept or reject presents on some condition
+}
+
+export const NO_CONDITION = (_: Bauble[]) => true;
+export const NO_OUTPUT = (baubles: Bauble[]) => baubles;
+
+export type Level = {
+    type: LevelType,
+    title: string,
+    text: string,
+    grid_scale: number,
+    good_case: Bauble[],
+    test: (input_baubles: Bauble[], proposed_baubles: Bauble[]) => boolean
+}
