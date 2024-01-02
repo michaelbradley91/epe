@@ -52,6 +52,7 @@ export const MEDIUM_FONT_SIZE = "16px";
 export const START_MENU_FONT_SIZE = HUGE_FONT_SIZE;
 export const INSTRUCTION_TITLE_FONT_SIZE = LARGE_FONT_SIZE;
 export const INSTRUCTION_FONT_SIZE = MEDIUM_FONT_SIZE;
+export const PLAY_MESSAGE_FONT_SIZE = MEDIUM_FONT_SIZE;
 
 /*
  * Limits
@@ -62,6 +63,7 @@ export const MAX_PLAY_SPEED = 5;
 
 // How long can the analyser work before returning control to the UI
 export const MAX_THINKING_TIME_MILLISECONDS = 30;
+export const MAX_SOLUTIONS_CHECKED = 2 ** 13;
 
 /*
  * Strings

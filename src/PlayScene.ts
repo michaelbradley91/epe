@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
-import { CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, PROGRESS_PRESENT_MAX_X, PROGRESS_PRESENT_MIN_X, TILE_SIZE } from './constants';
-import { Action, Bauble, Grid, GridEntry, Piece, Position, Step, TestResult } from './types';
+import { CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, FONT_FAMILY, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MAX_SOLUTIONS_CHECKED, MIN_PLAY_SPEED, PLAY_MESSAGE_FONT_SIZE, PROGRESS_PRESENT_MAX_X, PROGRESS_PRESENT_MIN_X, TEXT_COLOR, TILE_SIZE } from './constants';
+import { Action, Bauble, Grid, GridEntry, LevelType, Piece, Position, Step, TestResult } from './types';
 import { GameState, find_piece, init_game_state, test_level_solution } from './logic';
 import { LEVELS } from './levels';
 
@@ -33,6 +33,8 @@ export default class PlayScene extends Phaser.Scene {
     christmas_tree_tinsel: Phaser.GameObjects.Image[] = [];
     write_elf!: Phaser.GameObjects.Image;
     play_belt!: Phaser.GameObjects.Sprite;
+    play_message!: Phaser.GameObjects.Image;
+    play_message_text!: Phaser.GameObjects.Text;
 
     constructor() {
 		super('play')
@@ -79,6 +81,7 @@ export default class PlayScene extends Phaser.Scene {
         this.load.image("write_elf", "assets/Write_Head.png");
         this.load.image("read_elf", "assets/Read_Head.png");
         this.load.spritesheet("animated_long_belt", "assets/Long_Belt_Animated.png", { frameWidth: 192, frameHeight: 32 });
+        this.load.image("play_message", "assets/PlayMessage.png");
 	}
 
     reset_pointer_up_flags()
@@ -136,12 +139,18 @@ export default class PlayScene extends Phaser.Scene {
 			repeat: -1,
 		})
 
-		this.play_belt = this.add.sprite(425, button_y, "animated_long_belt").setOrigin(0, 0).setScale(2);
-        this.speed_up_button = this.add.image(816, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2);
-        this.slow_down_button = this.add.image(352, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2).setFlipX(true);
+		this.play_belt = this.add.sprite(425, button_y, "animated_long_belt").setOrigin(0, 0).setScale(2).setVisible(false).setActive(false);
+        this.speed_up_button = this.add.image(816, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2).setVisible(false).setActive(false);
+        this.slow_down_button = this.add.image(352, button_y, "fast_forward").setOrigin(0, 0).setInteractive().setScale(2).setFlipX(true).setVisible(false).setActive(false);
         this.add.image(292, button_y, "elf").setOrigin(0, 0).setScale(2);
         this.add.image(888, button_y - 8, "sleigh").setOrigin(0, 0).setScale(2);
-        this.progress_present = this.add.image(PROGRESS_PRESENT_MIN_X, button_y - 6, "present").setOrigin(0, 0).setScale(2);
+        this.progress_present = this.add.image(PROGRESS_PRESENT_MIN_X, button_y - 6, "present").setOrigin(0, 0).setScale(2).setVisible(false).setActive(false);
+        this.play_message = this.add.image(360, button_y, "play_message").setOrigin(0, 0);
+        this.play_message_text = this.add.text(384, button_y + 21, "", {
+			fontFamily: FONT_FAMILY,
+			fontSize: PLAY_MESSAGE_FONT_SIZE,
+			color: TEXT_COLOR
+		});
         this.pause();
         this.draw_grid();
 
@@ -221,6 +230,8 @@ export default class PlayScene extends Phaser.Scene {
             const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
             this.present = this.add.image(elf_position.x, elf_position.y, "present").setOrigin(0, 0.1).setScale(scaling);
         }
+
+        this.play_message_text.setText("Checking your solution: 0%");
     }
 
     /*
@@ -269,8 +280,14 @@ export default class PlayScene extends Phaser.Scene {
 
     play()
     {
+        this.speed_up_button.setVisible(true).setActive(true);
+        this.slow_down_button.setVisible(true).setActive(true);
+        this.play_belt.setVisible(true).setActive(true);
+        this.play_message.setVisible(false).setActive(false);
+        this.progress_present.setVisible(true).setActive(true);
         this.play_button.setVisible(false).setActive(false);
         this.pause_button.setVisible(true).setActive(true);
+        this.play_message_text.setVisible(false).setActive(false);
         this.play_belt.play("play_belt");
         this.playing = true;
     }
@@ -374,11 +391,46 @@ export default class PlayScene extends Phaser.Scene {
             if (this.test_result.next_test_case)
             {
                 this.next_test_case = this.test_result.next_test_case;
+                const percentage = Math.floor(Math.min((this.next_test_case - 1 / MAX_SOLUTIONS_CHECKED), 1) * 100);
+                this.play_message_text.setText(`Checking your solution: ${percentage}%`);
             }
             else
             {
                 this.analysing_solution = false;
-                // TODO show message according to result!
+                this.game_state.level_solved[this.game_state.current_level] = this.test_result.passed;
+                if (this.test_result.passed)
+                {
+                    this.play_message_text.setText("You did it! Press play to see it in action!");
+                }
+                else
+                {
+                    if (this.test_result.path.at(-1)?.action == Action.GiveUp)
+                    {
+                        this.play_message_text.setText("It's taking too long! (Press play)");
+                    }
+                    else if (this.test_result.path.at(-1)?.action == Action.Accept)
+                    {
+                        if (LEVELS[this.game_state.current_level].type == LevelType.Accept)
+                        {
+                            this.play_message_text.setText("Accepted the wrong present! (Press play)");
+                        }
+                        else
+                        {
+                            this.play_message_text.setText("Present not repaired correctly! (Press play)");
+                        }
+                    }
+                    else
+                    {
+                        if (LEVELS[this.game_state.current_level].type = LevelType.Accept)
+                        {
+                            this.play_message_text.setText("Rejected the wrong present! (Press play)");
+                        }
+                        else
+                        {
+                            this.play_message_text.setText("Failed to repair a present! (Press play)");
+                        }
+                    }
+                }
                 console.log("Test result: ", this.test_result.path);
             }
             return;

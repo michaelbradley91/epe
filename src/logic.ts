@@ -2,7 +2,7 @@
  * This module contains all the "thinking" parts of the game
  */
 
-import { MAX_PATH_LENGTH, MAX_THINKING_TIME_MILLISECONDS, NUMBER_LEVELS } from "./constants";
+import { MAX_PATH_LENGTH, MAX_SOLUTIONS_CHECKED, MAX_THINKING_TIME_MILLISECONDS, NUMBER_LEVELS } from "./constants";
 import { init_grid, number_to_baubles } from "./levels";
 import { Action, Bauble, Grid, Level, LevelType, Piece, Position, Step, TestResult } from "./types";
 
@@ -245,6 +245,7 @@ export function test_level_solution_case(level: Level, solution: Grid, baubles: 
         return {path: path.steps, result: expected == actual};
     }
     
+    console.log("checking solution case...");
     // Should always be accepted...
     const path = compute_path(baubles, solution);
     const last_entry = path.steps.at(-1);
@@ -263,7 +264,7 @@ export function test_level_solution(level: Level, solution: Grid, next_test_case
 {
     const start_time = Date.now();
     // Brute force a large number of possible inputs
-    for (let i = next_test_case; i < 2 ** 13; i += 1)
+    for (let i = next_test_case; i < MAX_SOLUTIONS_CHECKED; i += 1)
     {
         const bauble_colour = i % 2 == 0 ? Bauble.Red : Bauble.Blue;
         const baubles = number_to_baubles(Math.floor(i / 2), bauble_colour);

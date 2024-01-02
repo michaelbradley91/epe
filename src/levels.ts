@@ -13,7 +13,7 @@ export function baubles_to_number(binary_baubles: Bauble[], one_bauble: Bauble):
     for (let i = binary_baubles.length - 1; i >= 0; i -= 1)
     {
         bauble_number *= 2;
-        bauble_number + binary_baubles[i] == one_bauble ? 1 : 0;
+        bauble_number += (binary_baubles[i] == one_bauble) ? 1 : 0;
     }
     return bauble_number;
 }
@@ -25,9 +25,10 @@ export function number_to_baubles(number: number, one_bauble: Bauble): Bauble[]
     const zero_bauble = one_bauble == Bauble.Red ? Bauble.Blue : Bauble.Red;
     while (current_number != 0)
     {
-        baubles.push(current_number % 2 == 1 ? one_bauble : zero_bauble);
+        baubles.push((current_number % 2) == 1 ? one_bauble : zero_bauble);
         current_number = Math.floor(current_number / 2);
     }
+    console.log("number", number, "becomes baubles", baubles);
     return baubles;
 }
 
@@ -475,7 +476,9 @@ export const LEVELS: Level[] = [
         grid_scale: 1,
         good_case: [Bauble.Blue, Bauble.Blue, Bauble.Blue, Bauble.Red, Bauble.Red, Bauble.Blue],
         test: (baubles_original: Bauble[], baubles_solution: Bauble[]) => {
-            const baubles: Bauble[] = number_to_baubles(baubles_to_number(baubles_original, Bauble.Blue) * + 1, Bauble.Blue);
+            const baubles: Bauble[] = number_to_baubles(baubles_to_number(baubles_original, Bauble.Blue) + 1, Bauble.Blue);
+            console.log("Desired baubles: ", baubles);
+            console.log("Actual baubles: ", baubles_solution);
             return are_bauble_binary_numbers_equal(baubles, baubles_solution, Bauble.Blue);
         }
     },
