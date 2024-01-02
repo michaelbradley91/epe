@@ -28,7 +28,6 @@ export function number_to_baubles(number: number, one_bauble: Bauble): Bauble[]
         baubles.push((current_number % 2) == 1 ? one_bauble : zero_bauble);
         current_number = Math.floor(current_number / 2);
     }
-    console.log("number", number, "becomes baubles", baubles);
     return baubles;
 }
 
@@ -83,18 +82,9 @@ export const LEVELS: Level[] = [
         good_case: [Bauble.Blue, Bauble.Red, Bauble.Blue, Bauble.Red, Bauble.Blue],
         test: (baubles: Bauble[]) => {
             if (baubles.length == 0) return true;
-            const odd_bauble = baubles[0];
-            const even_bauble = odd_bauble == Bauble.Red ? Bauble.Blue : Bauble.Red;
-            for (let i = 0; i < baubles.length; i++)
+            for (let i = 1; i < baubles.length; i += 1)
             {
-                if (i % 2 == 0 && baubles[i] != even_bauble)
-                {
-                    return false;
-                }
-                else if (i % 2 == 1 && baubles[i] != odd_bauble)
-                {
-                    return false;
-                }
+                if (baubles[i - 1] == baubles[i]) return false;
             }
             return true;
         },
@@ -477,8 +467,6 @@ export const LEVELS: Level[] = [
         good_case: [Bauble.Blue, Bauble.Blue, Bauble.Blue, Bauble.Red, Bauble.Red, Bauble.Blue],
         test: (baubles_original: Bauble[], baubles_solution: Bauble[]) => {
             const baubles: Bauble[] = number_to_baubles(baubles_to_number(baubles_original, Bauble.Blue) + 1, Bauble.Blue);
-            console.log("Desired baubles: ", baubles);
-            console.log("Actual baubles: ", baubles_solution);
             return are_bauble_binary_numbers_equal(baubles, baubles_solution, Bauble.Blue);
         }
     },

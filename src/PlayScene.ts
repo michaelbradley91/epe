@@ -265,7 +265,6 @@ export default class PlayScene extends Phaser.Scene {
 
     replay()
     {
-        console.log("Test result baubles: ", this.test_result.baubles);
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
         this.update_baubles();
@@ -431,7 +430,6 @@ export default class PlayScene extends Phaser.Scene {
                         }
                     }
                 }
-                console.log("Test result: ", this.test_result.path);
             }
             return;
         }

@@ -140,7 +140,6 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
             }
             else if (entry.piece == Piece.GreenOrangeSwitch || entry.piece == Piece.RedBlueSwitch)
             {
-                console.log("Processing switch");
                 if (current_baubles.length == 0)
                 {
                     step = {
@@ -151,7 +150,6 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                 else
                 {
                     const next_bauble = current_baubles.at(0);
-                    console.log("Got next bauble: ", next_bauble);
                     let new_angle = entry.angle;
                     let action = Action.None;
                     // This is where it gets fiddly... which way is everything facing?
@@ -245,7 +243,6 @@ export function test_level_solution_case(level: Level, solution: Grid, baubles: 
         return {path: path.steps, result: expected == actual};
     }
     
-    console.log("checking solution case...");
     // Should always be accepted...
     const path = compute_path(baubles, solution);
     const last_entry = path.steps.at(-1);
@@ -273,7 +270,6 @@ export function test_level_solution(level: Level, solution: Grid, next_test_case
         {
             return {passed: false, baubles: baubles, path: baubles_result.path, next_test_case: undefined};
         }
-        console.log(baubles, "passed");
         // Check if we have taken too long
         const new_time = Date.now();
         if (new_time - start_time >= MAX_THINKING_TIME_MILLISECONDS)

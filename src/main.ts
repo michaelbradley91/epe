@@ -14,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
 	physics: {
 		default: 'arcade'
 	},
-	scene: [PlayScene, BuildingScene, StartScene, LevelSelectScene],
+	scene: [StartScene, PlayScene, BuildingScene, LevelSelectScene],
 	pixelArt: true,
 	scale: {
 		parent: 'app',

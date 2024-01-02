@@ -29,7 +29,6 @@
 	<script>
 		var href = new URL(window.location.href).pathname;
 		var dir = href.substring(0, href.lastIndexOf('/')) + "/";
-		console.log("dir is", dir);
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', function() {
 				navigator.serviceWorker.register('./sw.js', {scope: dir}).then(function(registration) {

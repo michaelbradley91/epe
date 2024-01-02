@@ -21,15 +21,15 @@ export type Position = {
 };
 
 export enum Action {
-    Write_Blue = "Write Blue",
-    Write_Red = "Write Red",
-    Write_Orange = "Write Orange",
-    Write_Green = "Write Green",
-    Reject = "Reject",
-    Accept = "Accept",
-    GiveUp = "Give Up", // Used when the path is just too long to compute
-    Read = "Read",
-    None = "None"
+    Write_Blue = 1,
+    Write_Red = 2,
+    Write_Orange = 3,
+    Write_Green = 4,
+    Reject = 5,
+    Accept = 6,
+    GiveUp = 7, // Used when the path is just too long to compute
+    Read = 8,
+    None = 9
 }
 
 // Describes what to do at a step. Where to go, whether to write a bauble or pop one off, etc
@@ -52,10 +52,10 @@ export type Grid = {
 }
 
 export enum Bauble {
-    Red = "red",
-    Orange = "orange",
-    Blue = "blue",
-    Green = "green"
+    Red = 1,
+    Orange = 2,
+    Blue = 3,
+    Green = 4
 }
 
 // Outcome of testing a grid against the level criteria
