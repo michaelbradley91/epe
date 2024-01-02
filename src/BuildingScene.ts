@@ -11,8 +11,8 @@ export default class BuildingScene extends Phaser.Scene {
     printer_orange_button!: Phaser.GameObjects.Image;
     printer_green_button!: Phaser.GameObjects.Image;
     printer_blue_button!: Phaser.GameObjects.Image;
-    switch_blue_orange_button!: Phaser.GameObjects.Image;
-    switch_red_green_button!: Phaser.GameObjects.Image;
+    switch_green_orange_button!: Phaser.GameObjects.Image;
+    switch_red_blue_button!: Phaser.GameObjects.Image;
     belt_button!: Phaser.GameObjects.Image;
     highlight_button!: Phaser.GameObjects.Image;
     eraser_button!: Phaser.GameObjects.Image;
@@ -49,8 +49,8 @@ export default class BuildingScene extends Phaser.Scene {
         this.load.image("printer_green", "assets/Printer_Green_01.png");
         this.load.image("printer_orange", "assets/Printer_Orange_01.png");
         this.load.image("printer_red", "assets/Printer_Red_01.png");
-        this.load.image("splitter_orange_blue", "assets/Splitter_Orange_Blue_01.png");
-        this.load.image("splitter_red_green", "assets/Splitter_Red_Green_01.png");
+        this.load.image("splitter_green_orange", "assets/Splitter_Green_Orange_01.png");
+        this.load.image("splitter_red_blue", "assets/Splitter_red_blue_01.png");
         this.load.image("belt", "assets/Belt_01.png");
         this.load.image("play", "assets/Play_01.png");
         this.load.image("highlight_belt", "assets/Belt_Highlight.png");
@@ -95,8 +95,8 @@ export default class BuildingScene extends Phaser.Scene {
         this.printer_orange_button = this.add.image(select_button_left + 32 + select_button_separator * 2, button_y + 32, "printer_orange").setInteractive().setScale(2);
         this.printer_green_button = this.add.image(select_button_left + 32 + select_button_separator * 3, button_y + 32, "printer_green").setInteractive().setScale(2);
         this.printer_blue_button = this.add.image(select_button_left + 32 + select_button_separator * 4, button_y + 32, "printer_blue").setInteractive().setScale(2);
-        this.switch_blue_orange_button = this.add.image(select_button_left + 32 + select_button_separator * 5, button_y + 32, "splitter_orange_blue").setInteractive().setScale(2);
-        this.switch_red_green_button = this.add.image(select_button_left + 32 + select_button_separator * 6, button_y + 32, "splitter_red_green").setInteractive().setScale(2);
+        this.switch_green_orange_button = this.add.image(select_button_left + 32 + select_button_separator * 5, button_y + 32, "splitter_green_orange").setInteractive().setScale(2);
+        this.switch_red_blue_button = this.add.image(select_button_left + 32 + select_button_separator * 6, button_y + 32, "splitter_red_blue").setInteractive().setScale(2);
         this.eraser_button = this.add.image(select_button_left + 32 + select_button_separator * 7, button_y + 32, "eraser_belt").setInteractive().setScale(2);
         this.play_button = this.add.image(888, button_y, "play").setOrigin(0, 0).setInteractive().setScale(2);
         this.highlight_button = this.add.image(-1000, -1000, "highlight_belt").setScale(1.8);
@@ -114,11 +114,11 @@ export default class BuildingScene extends Phaser.Scene {
         this.printer_blue_button.on("pointerdown", () => {
             this.highlight_build_button(this.printer_blue_button);
         }, this);
-        this.switch_blue_orange_button.on("pointerdown", () => {
-            this.highlight_build_button(this.switch_blue_orange_button);
+        this.switch_green_orange_button.on("pointerdown", () => {
+            this.highlight_build_button(this.switch_green_orange_button);
         }, this);
-        this.switch_red_green_button.on("pointerdown", () => {
-            this.highlight_build_button(this.switch_red_green_button);
+        this.switch_red_blue_button.on("pointerdown", () => {
+            this.highlight_build_button(this.switch_red_blue_button);
         }, this);
         this.belt_button.on("pointerdown", () => {
             this.highlight_build_button(this.belt_button);
@@ -193,9 +193,9 @@ export default class BuildingScene extends Phaser.Scene {
 
                 // Work out what to set
                 let flipped = false;
-                if (highlighted_button === this.switch_blue_orange_button || this.switch_red_green_button === highlighted_button)
+                if (highlighted_button === this.switch_green_orange_button || this.switch_red_blue_button === highlighted_button)
                 {
-                    flipped = this.switch_blue_orange_button.flipX || this.switch_red_green_button.flipY;
+                    flipped = this.switch_green_orange_button.flipX || this.switch_red_blue_button.flipY;
                 }
                 const angle = this.belt_button.angle;
                 this.set_tile(grid_coordinate.x, grid_coordinate.y, highlighted_button.texture.key, angle, flipped);
@@ -332,13 +332,13 @@ export default class BuildingScene extends Phaser.Scene {
         {
             return this.printer_red_button.texture.key;
         }
-        else if (piece == Piece.BlueOrangeSwitch)
+        else if (piece == Piece.GreenOrangeSwitch)
         {
-            return this.switch_blue_orange_button.texture.key;
+            return this.switch_green_orange_button.texture.key;
         }
-        else if (piece == Piece.RedGreenSwitch)
+        else if (piece == Piece.RedBlueSwitch)
         {
-            return this.switch_red_green_button.texture.key;
+            return this.switch_red_blue_button.texture.key;
         }
         else if (piece == Piece.Elf)
         {
@@ -376,13 +376,13 @@ export default class BuildingScene extends Phaser.Scene {
         {
             return Piece.RedPrinter;
         }
-        else if (image == this.switch_blue_orange_button.texture.key)
+        else if (image == this.switch_green_orange_button.texture.key)
         {
-            return Piece.BlueOrangeSwitch;
+            return Piece.GreenOrangeSwitch;
         }
-        else if (image == this.switch_red_green_button.texture.key)
+        else if (image == this.switch_red_blue_button.texture.key)
         {
-            return Piece.RedGreenSwitch;
+            return Piece.RedBlueSwitch;
         }
         else if (image == this.grid_elf?.texture.key)
         {
@@ -477,13 +477,13 @@ export default class BuildingScene extends Phaser.Scene {
         // Reflect all of the buttons...
         if (this.belt_button.angle % 90 !== 0)
         {
-            this.switch_blue_orange_button.toggleFlipY();
-            this.switch_red_green_button.toggleFlipY();
+            this.switch_green_orange_button.toggleFlipY();
+            this.switch_red_blue_button.toggleFlipY();
         }
         else
         {
-            this.switch_blue_orange_button.toggleFlipX();
-            this.switch_red_green_button.toggleFlipX();
+            this.switch_green_orange_button.toggleFlipX();
+            this.switch_red_blue_button.toggleFlipX();
         }
     }
 
@@ -494,8 +494,8 @@ export default class BuildingScene extends Phaser.Scene {
         this.printer_green_button.setAngle(this.printer_green_button.angle + 90);
         this.printer_orange_button.setAngle(this.printer_orange_button.angle + 90);
         this.printer_red_button.setAngle(this.printer_red_button.angle + 90);
-        this.switch_blue_orange_button.setAngle(this.switch_blue_orange_button.angle + 90);
-        this.switch_red_green_button.setAngle(this.switch_red_green_button.angle + 90);
+        this.switch_green_orange_button.setAngle(this.switch_green_orange_button.angle + 90);
+        this.switch_red_blue_button.setAngle(this.switch_red_blue_button.angle + 90);
     }
 
     play_button_pressed()
@@ -510,13 +510,13 @@ export default class BuildingScene extends Phaser.Scene {
 
     get_highlighted_button(): Phaser.GameObjects.Image | undefined
     {
-        if (this.is_highlighted(this.switch_blue_orange_button))
+        if (this.is_highlighted(this.switch_green_orange_button))
         {
-            return this.switch_blue_orange_button;
+            return this.switch_green_orange_button;
         }
-        if (this.is_highlighted(this.switch_red_green_button))
+        if (this.is_highlighted(this.switch_red_blue_button))
         {
-            return this.switch_red_green_button;
+            return this.switch_red_blue_button;
         }
         if (this.is_highlighted(this.printer_blue_button))
         {

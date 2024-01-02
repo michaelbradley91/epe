@@ -64,8 +64,8 @@ export default class PlayScene extends Phaser.Scene {
         this.load.image("printer_green", "assets/Printer_Green_01.png");
         this.load.image("printer_orange", "assets/Printer_Orange_01.png");
         this.load.image("printer_red", "assets/Printer_Red_01.png");
-        this.load.image("splitter_orange_blue", "assets/Splitter_Orange_Blue_01.png");
-        this.load.image("splitter_red_green", "assets/Splitter_Red_Green_01.png");
+        this.load.image("splitter_green_orange", "assets/Splitter_green_orange_01.png");
+        this.load.image("splitter_red_blue", "assets/Splitter_Red_Blue_01.png");
         this.load.image("present", "assets/Present.png");
         this.load.image("belt", "assets/Belt_01.png");
         this.load.image("play", "assets/Play_01.png");
@@ -329,13 +329,13 @@ export default class PlayScene extends Phaser.Scene {
         {
             image = this.add.image(real_x, real_y, "belt");
         }
-        else if (entry.piece == Piece.BlueOrangeSwitch)
+        else if (entry.piece == Piece.GreenOrangeSwitch)
         {
-            image = this.add.image(real_x, real_y, "splitter_orange_blue");
+            image = this.add.image(real_x, real_y, "splitter_green_orange");
         }
-        else if (entry.piece == Piece.RedGreenSwitch)
+        else if (entry.piece == Piece.RedBlueSwitch)
         {
-            image = this.add.image(real_x, real_y, "splitter_red_green");
+            image = this.add.image(real_x, real_y, "splitter_red_blue");
         }
         else if (entry.piece == Piece.BluePrinter)
         {

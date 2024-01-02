@@ -9,8 +9,8 @@ export enum Piece {
     BluePrinter = 4,
     GreenPrinter = 5,
     OrangePrinter = 6,
-    RedGreenSwitch = 7,
-    BlueOrangeSwitch = 8,
+    RedBlueSwitch = 7,
+    GreenOrangeSwitch = 8,
     Belt = 9,
     Nothing = 10
 }

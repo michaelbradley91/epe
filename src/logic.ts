@@ -138,7 +138,7 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                 };
                 current_baubles.push(Bauble.Green);
             }
-            else if (entry.piece == Piece.BlueOrangeSwitch || entry.piece == Piece.RedGreenSwitch)
+            else if (entry.piece == Piece.GreenOrangeSwitch || entry.piece == Piece.RedBlueSwitch)
             {
                 console.log("Processing switch");
                 if (current_baubles.length == 0)
@@ -155,9 +155,9 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                     let new_angle = entry.angle;
                     let action = Action.None;
                     // This is where it gets fiddly... which way is everything facing?
-                    if (entry.piece == Piece.BlueOrangeSwitch)
+                    if (entry.piece == Piece.GreenOrangeSwitch)
                     {
-                        if (next_bauble == Bauble.Blue)
+                        if (next_bauble == Bauble.Green)
                         {
                             action = Action.Read;
                             if (entry.flipped)
@@ -182,7 +182,7 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                             }
                         }
                     }
-                    else if (entry.piece == Piece.RedGreenSwitch)
+                    else if (entry.piece == Piece.RedBlueSwitch)
                     {
                         if (next_bauble == Bauble.Red)
                         {
@@ -196,7 +196,7 @@ export function compute_path(baubles: Bauble[], grid: Grid): {steps: Step[], fin
                                 new_angle += 90;
                             }
                         }
-                        else if (next_bauble == Bauble.Green)
+                        else if (next_bauble == Bauble.Blue)
                         {
                             action = Action.Read;
                             if (entry.flipped)
