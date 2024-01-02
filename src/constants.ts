@@ -60,3 +60,10 @@ export const MAX_PATH_LENGTH = 1000;
 export const MIN_PLAY_SPEED = 1;
 export const MAX_PLAY_SPEED = 5;
 
+/*
+ * Strings
+ */
+export const TEST_TITLE = "QUALITY ASSURANCE";
+export const BINARY_TEST_TITLE = "BINARY MATHS";
+export const BINARY_REPAIR_TITLE = "BINARY REPAIR";
+export const REPAIR_TITLE = "REPAIR";

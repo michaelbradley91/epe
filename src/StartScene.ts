@@ -171,7 +171,6 @@ export default class StartScene extends Phaser.Scene {
 	quit_game()
 	{
 		// Quit the entire game!
-		console.log("Closing!");
 		this.game.destroy(true, false);
 		window.close();
 	}

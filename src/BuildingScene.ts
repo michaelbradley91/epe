@@ -1,7 +1,8 @@
 import Phaser from 'phaser'
 import { FONT_FAMILY, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, INSTRUCTION_FONT_SIZE, INSTRUCTION_TITLE_FONT_SIZE, TEXT_COLOR, TILE_SIZE } from './constants';
-import { Grid, GridEntry, Piece } from './types';
+import { Grid, GridEntry, Level, Piece } from './types';
 import { GameState, init_game_state } from './logic';
+import { LEVELS } from './levels';
 
 export default class BuildingScene extends Phaser.Scene {
 
@@ -27,9 +28,6 @@ export default class BuildingScene extends Phaser.Scene {
 
     // Game state
     game_state!: GameState;
-
-    // Stores the grid details
-    grid_size!: number;
     level_number_sprites: { [id: number]: Phaser.GameObjects.Sprite } = {};
     // The grid index is a number of x + y * <number of tiles in grid>
     grid: { [id: number]: Phaser.GameObjects.Image } = {};
@@ -70,7 +68,7 @@ export default class BuildingScene extends Phaser.Scene {
 		{
 			this.game_state = data.game_state;
 		}
-        this.grid_size = Math.floor(GRID_WIDTH / this.game_state.level_solutions[this.game_state.current_level].width);
+        LEVELS[this.game_state.current_level].grid_scale = Math.floor(GRID_WIDTH / this.game_state.level_solutions[this.game_state.current_level].width);
     }
 
     reset_pointer_up_flags()
@@ -202,7 +200,6 @@ export default class BuildingScene extends Phaser.Scene {
                 const angle = this.belt_button.angle;
                 this.set_tile(grid_coordinate.x, grid_coordinate.y, highlighted_button.texture.key, angle, flipped);
                 this.game_state.level_solutions[this.game_state.current_level] = this.extract_grid();
-                console.log("Updated grid")
             }
         }, this);
 
@@ -246,8 +243,8 @@ export default class BuildingScene extends Phaser.Scene {
      */
     get_grid_coordinates(x: number, y: number): {x: number, y: number}
     {
-        const grid_tile_x = Math.floor((x - GRID_X) / this.grid_size);
-        const grid_tile_y = Math.floor((y - GRID_Y) / this.grid_size);
+        const grid_tile_x = Math.floor((x - GRID_X) / LEVELS[this.game_state.current_level].grid_scale);
+        const grid_tile_y = Math.floor((y - GRID_Y) / LEVELS[this.game_state.current_level].grid_scale);
         return {x: grid_tile_x, y: grid_tile_y};
     }
 
@@ -256,19 +253,19 @@ export default class BuildingScene extends Phaser.Scene {
      */
     get_real_coordinates(grid_x: number, grid_y: number): {x: number, y: number}
     {
-        const x = (grid_x * this.grid_size) + GRID_X;
-        const y = (grid_y * this.grid_size) + GRID_Y;
+        const x = (grid_x * LEVELS[this.game_state.current_level].grid_scale) + GRID_X;
+        const y = (grid_y * LEVELS[this.game_state.current_level].grid_scale) + GRID_Y;
         return {x: x, y: y};
     }
 
     get_grid_number_of_tiles_wide(): number
     {
-        return Math.floor(GRID_WIDTH / this.grid_size);
+        return Math.floor(GRID_WIDTH / LEVELS[this.game_state.current_level].grid_scale);
     }
 
     get_grid_number_of_tiles_tall(): number
     {
-        return Math.floor(GRID_HEIGHT / this.grid_size);
+        return Math.floor(GRID_HEIGHT / LEVELS[this.game_state.current_level].grid_scale);
     }
 
     get_grid_index(grid_x: number, grid_y: number): number
@@ -281,7 +278,6 @@ export default class BuildingScene extends Phaser.Scene {
      */
     set_tile(grid_x: number, grid_y: number, image: string, angle: number, flipped: boolean): Phaser.GameObjects.Image | undefined
     {
-        console.log("setting tile", grid_x, grid_y, image);
         // You cannot change the elf or Santa's sleigh
         const grid_index = this.get_grid_index(grid_x, grid_y);
         const grid_entry = this.grid[grid_index];
@@ -293,7 +289,7 @@ export default class BuildingScene extends Phaser.Scene {
 
         // Now place the new image
         const position = this.get_real_coordinates(grid_x, grid_y);
-        const scaling = Math.floor(this.grid_size / TILE_SIZE);
+        const scaling = Math.floor(LEVELS[this.game_state.current_level].grid_scale / TILE_SIZE);
         const new_image = this.add.image(position.x + (TILE_SIZE / 2) * scaling, position.y + (TILE_SIZE / 2) * scaling, image).setScale(scaling);
         new_image.setAngle(angle);
 
@@ -356,7 +352,6 @@ export default class BuildingScene extends Phaser.Scene {
 
     image_to_piece(image: string): Piece
     {
-        console.log("image conversion", image);
         if (!image)
         {
             return Piece.Nothing;
@@ -405,7 +400,7 @@ export default class BuildingScene extends Phaser.Scene {
      */
     extract_grid(): Grid
     {
-        const grid: Grid = { width: Math.floor(GRID_WIDTH / this.grid_size), height: Math.floor(GRID_HEIGHT / this.grid_size), entries: []};
+        const grid: Grid = { width: Math.floor(GRID_WIDTH / LEVELS[this.game_state.current_level].grid_scale), height: Math.floor(GRID_HEIGHT / LEVELS[this.game_state.current_level].grid_scale), entries: []};
         for(let x = 0; x < grid.width; x += 1)
         {
             grid.entries[x] = [];
@@ -442,7 +437,17 @@ export default class BuildingScene extends Phaser.Scene {
 
     setup_level()
     {
-        console.log("Setting up level");
+        // Start by clearing out the grid
+        for (let index in this.grid)
+        {
+            if (this.grid[index])
+            {
+                this.grid[index].destroy();
+                delete this.grid[index];
+            }
+        }
+
+        // Now repopulate with the level solution
         const level_solution: Grid = this.game_state.level_solutions[this.game_state.current_level];
         for (let x = 0; x < level_solution.width; x += 1)
         {
@@ -451,7 +456,6 @@ export default class BuildingScene extends Phaser.Scene {
                 const image_key = this.piece_to_image(level_solution.entries[x][y].piece);
                 if (image_key)
                 {
-                    console.log("Adding (", x, ",", y, ") piece:", image_key);
                     const image = this.set_tile(x, y, image_key, level_solution.entries[x][y].angle, level_solution.entries[x][y].flipped);
                     if (level_solution.entries[x][y].piece == Piece.Elf)
                     {
@@ -464,7 +468,8 @@ export default class BuildingScene extends Phaser.Scene {
                 }
             }
         }
-        this.add_instructions("The basics", "Accept all presents starting with two red markers.");
+        const level: Level = LEVELS[this.game_state.current_level];
+        this.add_instructions(level.title, level.text);
     }
 
     reflect_button_pressed()

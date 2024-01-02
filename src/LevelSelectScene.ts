@@ -50,7 +50,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 			const level_highlighted_sprite = this.add.sprite(120 + (column * 72), 192 + (row * 80), "level_select_numbers", frame + 10).setOrigin(0, 0).setScale(2).setInteractive();
 			this.level_highlighted_number_sprites[i] = level_highlighted_sprite;
 
-			if (this.level_selected === i)
+			if (this.game_state.level_solved[i])
 			{
 				level_highlighted_sprite.setVisible(true);
 				level_sprite.setVisible(false);
@@ -91,11 +91,6 @@ export default class LevelSelectScene extends Phaser.Scene {
 
 	update_numbers(new_level_selected: number)
 	{
-		this.level_number_sprites[this.level_selected].setVisible(true);
-		this.level_highlighted_number_sprites[this.level_selected].setVisible(false);
-
-		this.level_highlighted_number_sprites[new_level_selected].setVisible(true);
-		this.level_number_sprites[new_level_selected].setVisible(false);
 		this.level_selected = new_level_selected;
 	}
 

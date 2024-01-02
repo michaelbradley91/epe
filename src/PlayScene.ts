@@ -1,7 +1,8 @@
 import Phaser from 'phaser'
 import { CHRISTMAS_TREE_HEIGHT, CHRISTMAS_TREE_LEFT, CHRISTMAS_TREE_SIZE, CHRISTMAS_TREE_TOP, CHRISTMAS_TREE_WIDTH, GRID_HEIGHT, GRID_WIDTH, GRID_X, GRID_Y, MAX_PLAY_SPEED, MIN_PLAY_SPEED, PROGRESS_PRESENT_MAX_X, PROGRESS_PRESENT_MIN_X, TILE_SIZE } from './constants';
 import { Action, Bauble, Grid, GridEntry, Piece, Position, Step, TestResult } from './types';
-import { GameState, find_piece, init_game_state, test_condition } from './logic';
+import { GameState, find_piece, init_game_state, test_level_solution } from './logic';
+import { LEVELS } from './levels';
 
 export default class PlayScene extends Phaser.Scene {
     game_state!: GameState;
@@ -44,11 +45,13 @@ export default class PlayScene extends Phaser.Scene {
 		{
 			this.game_state = data.game_state;
 		}
-        this.grid = this.game_state.level_solutions[this.game_state.current_level];
+    }
+
+    get_grid(): Grid {
+        return this.game_state.level_solutions[this.game_state.current_level];
     }
 
     preload() {
-        console.log("Preloading");
 		this.load.image("running", "assets/Running.png");
 		this.load.image("exit_door_belt", "assets/Return_01.png");
         this.load.image("replay", "assets/Repeat_01.png");
@@ -86,7 +89,6 @@ export default class PlayScene extends Phaser.Scene {
 
     create()
     {
-        console.log("Creating");
         const running_image = this.add.image(0, 0, 'running').setOrigin(0, 0);
         const button_y = running_image.height - 74;
         this.exit_button = this.add.image(16, button_y, "exit_door_belt").setOrigin(0, 0).setInteractive().setScale(2);
@@ -191,7 +193,7 @@ export default class PlayScene extends Phaser.Scene {
         }, this);
 
         // Test the player's creation
-        this.test_result = test_condition(this.grid, false, (_) => true);
+        this.test_result = test_level_solution(LEVELS[this.game_state.current_level], this.get_grid());
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
         this.playing = true;
@@ -201,10 +203,10 @@ export default class PlayScene extends Phaser.Scene {
         this.play_speed = 2;
 
         // Add the present and watch it fly!
-        const elf_location = find_piece(this.grid, Piece.Elf);
+        const elf_location = find_piece(this.get_grid(), Piece.Elf);
         if (elf_location)
         {
-            const tile_size = GRID_WIDTH / this.grid.width;
+            const tile_size = GRID_WIDTH / this.get_grid().width;
             const scaling = tile_size / TILE_SIZE;
             const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
             this.present = this.add.image(elf_position.x, elf_position.y, "present").setOrigin(0, 0).setScale(scaling);
@@ -216,7 +218,7 @@ export default class PlayScene extends Phaser.Scene {
      */
     get_real_coordinates(grid_x: number, grid_y: number): {x: number, y: number}
     {
-        const grid_size = Math.floor(GRID_WIDTH / this.grid.width);
+        const grid_size = Math.floor(GRID_WIDTH / this.get_grid().width);
         const x = (grid_x * grid_size) + GRID_X;
         const y = (grid_y * grid_size) + GRID_Y;
         return {x: x, y: y};
@@ -247,7 +249,7 @@ export default class PlayScene extends Phaser.Scene {
         this.playing = true;
         this.active_baubles = Object.assign([], this.test_result.baubles);
         this.active_step = 0;
-        const elf_location = find_piece(this.grid, Piece.Elf);
+        const elf_location = find_piece(this.get_grid(), Piece.Elf);
         if (elf_location)
         {
             const elf_position = this.get_real_coordinates(elf_location.x, elf_location.y);
@@ -275,11 +277,11 @@ export default class PlayScene extends Phaser.Scene {
      */
     draw_grid()
     {
-        for (let x = 0; x < this.grid.width; x += 1)
+        for (let x = 0; x < this.get_grid().width; x += 1)
         {
-            for (let y = 0; y < this.grid.height; y += 1)
+            for (let y = 0; y < this.get_grid().height; y += 1)
             {
-                this.draw_entry(x, y, this.grid.entries[x][y]);
+                this.draw_entry(x, y, this.get_grid().entries[x][y]);
             }
         }
     }
@@ -287,7 +289,7 @@ export default class PlayScene extends Phaser.Scene {
     draw_entry(x: number, y: number, entry: GridEntry)
     {
         // How wide is each tile?
-        const tile_size = GRID_WIDTH / this.grid.width;
+        const tile_size = GRID_WIDTH / this.get_grid().width;
         const scaling = tile_size / TILE_SIZE;
 
         // Where is this on the screen?
@@ -545,7 +547,7 @@ export default class PlayScene extends Phaser.Scene {
         const current_position: Position = {x: this.present.x, y: this.present.y};
 
         // Work out how far along the step we are...
-        const tile_size = Math.floor(GRID_WIDTH / this.grid.width);
+        const tile_size = Math.floor(GRID_WIDTH / this.get_grid().width);
         const step_progress = (tile_size - Math.abs(((next_position.x - current_position.x) + (next_position.y - current_position.y)))) / tile_size;
         // Work out how much percent each step is worth...
         const step_percent = 1 / (this.test_result.path.length - 1);
