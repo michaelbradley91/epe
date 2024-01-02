@@ -421,7 +421,7 @@ export default class PlayScene extends Phaser.Scene {
                     }
                     else
                     {
-                        if (LEVELS[this.game_state.current_level].type = LevelType.Accept)
+                        if (LEVELS[this.game_state.current_level].type == LevelType.Accept)
                         {
                             this.play_message_text.setText("Rejected the wrong present! (Press play)");
                         }
